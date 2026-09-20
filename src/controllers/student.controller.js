@@ -1,7 +1,7 @@
 import { Students } from "../models/Students.model.js";
 import { Representative } from "../models/Representative.model.js";
 import { Users } from "../models/Users.model.js";
-import { generateTuitionNumber } from "../utils/tuitoinNumber.js";
+import { tuitionNumber } from "../utils/tuitionNumber.js";
 import { welcomeEmail } from "../services/resend.service.js";
 import { Academic_periods } from "../models/Academin_period.model.js";
 import { Subject } from "../models/Subject.model.js";
@@ -27,6 +27,7 @@ function formatText(text) {
 const normalizeToDate = (rawDate) => {
   if (!rawDate) return null;
 
+  logger.debug("normalizando...", { rawDate });
   // Reemplazar / por - y separar año, mes, día
   const parts = rawDate.toString().trim().replace(/\//g, "-").split("-");
 
@@ -57,8 +58,8 @@ const safeTrim = (val) => (typeof val === "string" ? val.trim() : "");
  * @returns {Promise<import("express").Response>} Respuesta HTTP en formato JSON con la lista de escuelas.
  */
 export const getStudents = async (req, res) => {
-  const SIG = /* req.user.SIG */ "SIG8587";
-  const id_period = /* req.user.id_period */ 1;
+  const SIG = req.user.SIG;
+  const id_period = req.user.id_period;
 
   if (!SIG) {
     return res.status(400).json({
@@ -190,11 +191,11 @@ export const createStudent = async (req, res) => {
     const repDoc = `${repdniType}${repdni}`.trim();
     const SIG = req.user?.SIG;
 
-    const tuitionNumber = await generateTuitionNumber(SIG);
+    const tuitionNumberN = await tuitionNumber(SIG);
 
-    if (!tuitionNumber) {
+    if (!tuitionNumberN) {
       logger.warn("Ocurrio un problema generando la matricula", {
-        tuitionNumber,
+        tuitionNumberN,
         SIG,
       });
       return res.status(400).json({
@@ -205,7 +206,7 @@ export const createStudent = async (req, res) => {
     }
     const passgeneric = `${studentDoc.substring(0, 4)}@2026`;
 
-    const birthDate = normalizeToDate(req.body.birth_date);
+    const birthDate = normalizeToDate(req.body.birthDate);
     if (!birthDate) {
       logger.error(
         "La fecha de nacimiento es inválida. Usa un formato válido como YYYY-MM-DD o YYYY/MM/DD.",
@@ -223,7 +224,7 @@ export const createStudent = async (req, res) => {
     // insercion el la DB
     const newStudent = await Students.createStudent({
       student: {
-        tuition_number: tuitionNumber,
+        tuition_number: tuitionNumberN,
         allergies: req.body.allergies || null,
         medical_condition: req.body.medicalCondition || null,
         weight: req.body.weight || null,
@@ -231,9 +232,8 @@ export const createStudent = async (req, res) => {
         shirt_size: req.body.shirtSize || null,
         pants_size: req.body.pantSize || null,
         shoe_size: req.body.shoeSize || null,
-        condition: req.body.condition || null,
+        condition: req.body.condition || "nuevo_ingreso",
         SIG: SIG,
-        tuition_number: tuitionNumber,
         gender: gender?.trim(),
         birth_date: birthDate,
       },
@@ -250,9 +250,8 @@ export const createStudent = async (req, res) => {
         name: formatText(name),
         last_name: formatText(lastName),
         email: email?.trim(),
-        password: passgeneric,
         phone: phone,
-        role_id: req.body.role_id || 4,
+        role_id: req.body.role_id || 2,
         pass: passgeneric,
       },
     });
@@ -398,7 +397,7 @@ export const updateStudent = async (req, res) => {
  */
 export const getStudentNotEnrolled = async (req, res) => {
   const SIG = req.user?.SIG;
-  const { id_period } = req.user.id_period;
+  const { id_period } = req.params;
 
   if (!SIG) {
     logger.error(`No se encontro el codigo SIG. ${SIG}`);
@@ -410,7 +409,7 @@ export const getStudentNotEnrolled = async (req, res) => {
     });
   }
 
-  if (!id_period || isNaN(parseInt(id_period))) {
+  if (!id_period) {
     logger.error(`No se encontro el perido academico. ${id_period}`);
     return res.status(400).json({
       success: false,
@@ -431,6 +430,7 @@ export const getStudentNotEnrolled = async (req, res) => {
         code: "ALL_STUDENTS_ENROLLED",
         message:
           "Organización completa: Todos los estudiantes registrados ya cuentan con un aula asignada en este lapso.",
+        data: [],
       });
     }
 
@@ -587,11 +587,12 @@ export const getStudentByID = async (req, res) => {
  * @returns {Promise<import("express").Response>} Respuesta HTTP en formato JSON con la lista de escuelas.
  */
 export const getRecordStudent = async (req, res) => {
-  const { id_student } = req.params;
-  const id_period = req.query || req.user.id_period;
+  const { id } = req.params;
+  const id_period = req.query.id_period || req.user.id_period;
+  const SIG = req.user.SIG;
 
-  if (!id_student) {
-    console.error(`⚠️ [NOT FOUND] No se proporciono el id del estudiante.`);
+  if (!id) {
+    logger.warn(`No se proporciono el id del estudiante.`);
     return res.status(400).json({
       success: false,
       code: "RECORD_STUDENT_ID_REQUIRED",
@@ -601,13 +602,15 @@ export const getRecordStudent = async (req, res) => {
   }
 
   try {
-    console.error(`🔃 [LOANDIG...] Buscando el record...`);
-    const record = await Students.record(Number(id_student), Number(id_period));
+    logger.info(`Cargando récord académico del estudiante: ${id}`);
+    const record = await Students.grade({
+      idStudent: id,
+      SIG,
+      idPeriod: id_period,
+    });
 
     if (!record || record.length === 0) {
-      console.error(
-        `⚠️ [NOT FOUND] No se encontro el record academico del estudiante ${id_student}`,
-      );
+      logger.warn(`No se encontro el record academico del estudiante ${id}`);
       return res.status(404).json({
         success: false,
         code: "ACADEMIC_RECORD_EMPTY",
@@ -620,67 +623,6 @@ export const getRecordStudent = async (req, res) => {
       type: typeof record,
       isArray: Array.isArray(record),
     });
-
-    // Reestructuración de notas agrupadas por lapso
-    const gradesByLapse = record.grades.reduce((acc, currentGrade) => {
-      const evalData = currentGrade.evaluation;
-      const evalPlan = evalData?.evaluation_plan;
-      const lapse = evalPlan?.lapse;
-      const subjectData = evalPlan?.load_academic?.subject;
-
-      const lapseKey = lapse?.name || "Sin Lapso";
-
-      // Si la clave del lapso no existe aún en el objeto acumulador, se crea
-      if (!acc[lapseKey]) {
-        acc[lapseKey] = [];
-      }
-      const percentage = Number(evalData?.porcentage ?? 0);
-      const rawGrade = Number(currentGrade?.grade ?? 0);
-
-      const weightedGrade = Math.ceil(rawGrade * (percentage / 100));
-
-      // Insertar la nota formateada en el lapso correspondiente
-      acc[lapseKey].push({
-        id: currentGrade.id,
-        grade: rawGrade,
-        referent_teorical: evalData?.referent_teorical ?? null,
-        activity: evalData?.activity ?? null,
-        subject: subjectData?.name ?? null,
-        code_subject: subjectData?.code_subject ?? null,
-        porcentage: evalData.porcentage ?? null,
-      });
-
-      acc[lapseKey].push({ weighted_grade: weightedGrade });
-
-      return acc;
-    }, {});
-
-    const enrollment = record.enrollments[0];
-
-    // restructuracion del objeto record
-    const studentRecord = {
-      id: record.id,
-      tuition_number: record.tuition_number,
-      user: {
-        id_card: record.user.id_card,
-        name: record.user.name,
-        last_name: record.user.last_name,
-      },
-      school: {
-        SIG: record.school.SIG,
-        school_name: record.school.school_name,
-      },
-      enrollment: {
-        id: enrollment.id,
-        status: enrollment.status,
-        period: enrollment.period.name,
-        year: enrollment.year.name,
-        section: enrollment.section.name,
-      },
-      grades: gradesByLapse,
-    };
-
-    console.dir(studentRecord, { depth: null, colors: true });
 
     /*   const periodsMap = {};
 
@@ -757,10 +699,10 @@ export const getRecordStudent = async (req, res) => {
       success: true,
       message:
         "Expediente de calificaciones consolidado e indexado correctamente.",
-      data: studentRecord,
+      data: record,
     });
   } catch (error) {
-    console.error("❌ Error en getRecordStudent:", error);
+    logger.error("❌ Error en getRecordStudent:", { error: error });
     return res.status(500).json({
       success: false,
       code: "ACADEMIC_RECORD_INTERNAL_ERROR",
@@ -918,8 +860,8 @@ export const getSubjectPending = async (req, res) => {
  */
 export const getGrade = async (req, res) => {
   const { id_student } = req.params;
-  const SIG = /* req.user.SIG; */ "SIG3728";
-  const { idPeriod } = req.query || req.user.id_period;
+  const SIG = req.user.SIG;
+  const idPeriod = req.user.id_period;
 
   if (!id_student) {
     return res.status(400).json({
@@ -928,7 +870,6 @@ export const getGrade = async (req, res) => {
       message: "No se especificó el ID del estudiante.",
     });
   }
-  console.log(`Controller ${id_student}`);
 
   if (!idPeriod) {
     return res.status(400).json({
@@ -939,6 +880,7 @@ export const getGrade = async (req, res) => {
 
   try {
     logger.info("Cargando las notas, por favor espere...");
+
     const grades = await Students.grade({
       SIG: SIG,
       idStudent: Number(id_student),

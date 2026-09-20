@@ -12,49 +12,19 @@ import logger from "../utils/logger.js";
  * @returns {Promise<import("express").Response>} Respuesta HTTP en formato JSON con la lista de escuelas.
  */
 export const getTeachers = async (req, res) => {
+  const SIG = req.user.SIG;
+
+  if (!SIG) {
+    logger.error("Si codigo SIG");
+    return res.status(400).json({
+      success: false,
+      code: "MISSING_SCHOOL_SIG",
+      message:
+        "Identificador institucional ausente. Es obligatorio indicar el código SIG del plantel.",
+    });
+  }
+
   try {
-    const SIG = /* req.user.SIG */ "SIG3728";
-    const id_period = /* req.user.id_period */ 2;
-
-    if (!SIG) {
-      logger.error("Si codigo SIG");
-      return res.status(400).json({
-        success: false,
-        code: "MISSING_SCHOOL_SIG",
-        message:
-          "Identificador institucional ausente. Es obligatorio indicar el código SIG del plantel.",
-      });
-    }
-
-    let targetPeriodId = id_period;
-
-    if (!targetPeriodId) {
-      const periods = await Academic_periods.getAcademicPeriods(SIG);
-
-      if (!periods || periods.length === 0) {
-        logger.error("No pudo aceder al perido activo");
-        return res.status(404).json({
-          success: false,
-          code: "ACADEMIC_PERIODS_EMPTY",
-          message:
-            "No se encontró ningún período académico configurado en el sistema para esta institución.",
-        });
-      }
-
-      const activePeriod = periods.find((item) => item.is_active === 1);
-
-      if (!activePeriod) {
-        logger.error("No hay perido activo");
-        return res.status(404).json({
-          success: false,
-          code: "ACTIVE_PERIOD_NOT_FOUND",
-          message:
-            "No se localizó ningún período académico activo en este momento.",
-        });
-      }
-      targetPeriodId = activePeriod.id;
-    }
-
     logger.info("Lista de profesores cargada...");
     const teachers = await Teachers.getAllTeachersWithLoad({ SIG });
 
@@ -129,7 +99,7 @@ export const getTeachers = async (req, res) => {
  */
 export const getLoadAcademicTeacher = async (req, res) => {
   const SIG = req.user.SIG;
-  const id =  req.user.id;
+  const id = req.user.id;
 
   if (!id || !SIG) {
     return res.status(400).json({
@@ -142,7 +112,13 @@ export const getLoadAcademicTeacher = async (req, res) => {
 
   try {
     logger.info("Sincorniznado carga academia");
-    const teacherData = await Teachers.getTeacherWithLoadByID(SIG, id);
+    const id_teacher = await Teachers.id(id);
+
+    console.log(SIG, id_teacher);
+    const teacherData = await Teachers.getTeacherWithLoadByID({
+      SIG,
+      id_teacher,
+    });
 
     if (!teacherData) {
       return res.status(404).json({

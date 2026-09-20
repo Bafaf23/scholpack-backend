@@ -2,7 +2,7 @@ import { pool } from "../db.js";
 import { prisma } from "../lib/prisma.js";
 import bcrypt from "bcryptjs";
 import logger from "../utils/logger.js";
-import { generateTuitionNumber } from "../utils/tuitoinNumber.js";
+import { tuitionNumber } from "../utils/tuitionNumber.js";
 
 /**
  * Constructor de la clase Users
@@ -223,20 +223,15 @@ export class Users {
 
         const idUser = createUser.id;
         const roleUser = Number(user.role_id);
+        const SIG = user.SIG;
 
         switch (roleUser) {
-          case 3:
-            await tx.school.update({
-              where: { SIG: user.SIG },
-              data: { director_id: idUser },
-            });
-            break;
-          case 4:
-            const tuition_number = await generateTuitionNumber(user.SIG);
+          case 2:
+            const tuition_number = await tuitionNumber(user.SIG);
             await tx.student.create({
               data: {
                 id_user: idUser,
-                SIG: user.SIG,
+                SIG,
                 representative_id: user.representative_id,
                 tuition_number: tuition_number,
                 allergies: user.allergies,
@@ -252,29 +247,34 @@ export class Users {
               },
             });
             break;
-          case 5:
+          case 3:
             await tx.teacher.create({
               data: {
                 id_user: idUser,
-                SIG: user.SIG,
+                SIG,
                 is_active: true,
               },
             });
             break;
-          case 6:
+          case 4:
+            await tx.user_schools.create({
+              data: { user_id: idUser, SIG: user.SIG },
+            });
+            break;
+          case 5:
             await tx.administrator.create({
               data: {
                 id_user: idUser,
-                SIG: user.SIG,
+                SIG,
               },
             });
             break;
+          case 6:
           case 7:
-          case 8:
             await tx.user_schools.create({
               data: {
                 user_id: idUser,
-                SIG: user.SIG,
+                SIG,
               },
             });
             break;
@@ -299,7 +299,7 @@ export class Users {
    */
   static async getUserByEmail(email) {
     try {
-      return await prisma.users.findFirst({
+      const row = await prisma.users.findFirst({
         where: { email },
         select: {
           id: true,
@@ -314,13 +314,56 @@ export class Users {
               name: true,
             },
           },
-          user_schools: {
+        },
+      });
+
+      let sigRecord = null;
+      const role = row.role?.name?.toLowerCase();
+
+      switch (role) {
+        case "estudiante":
+          sigRecord = await prisma.student.findFirst({
+            where: { id_user: row.id },
+            select: { SIG: true, id: true },
+          });
+          break;
+        case "profesor":
+          sigRecord = await prisma.teacher.findFirst({
+            where: { id_user: row.id },
+            select: { SIG: true },
+          });
+          break;
+        case "administrador":
+          sigRecord = await prisma.administrator.findFirst({
+            where: { id_user: row.id },
             select: {
               SIG: true,
             },
-          },
-        },
-      });
+          });
+          break;
+        case "director":
+        case "subdirector":
+        case "gestion":
+          sigRecord = await prisma.user_schools.findFirst({
+            where: { user_id: row.id },
+            select: { SIG: true },
+          });
+          break;
+
+        default:
+          sigRecord = null;
+      }
+
+      return {
+        id: row.id,
+        name: row.name,
+        last_name: row.last_name,
+        pass: row.pass,
+        email: row.email,
+        is_first_login: row.is_first_login,
+        role: row.role.name,
+        SIG: sigRecord?.SIG || null,
+      };
     } catch (error) {
       console.error("Error al obtener usuario por email:", error);
       return null;
@@ -423,5 +466,47 @@ export class Users {
       console.error("Error al actualizar usuario:", error);
       return false;
     }
+  }
+
+  /**
+   ** Busca a todo el personal de una escuela, excluyendo a los estudiantes de la misma
+   * @param {string} SIG
+   * @returns {Array<object>}
+   */
+  static async usersSchool(SIG) {
+    const rows = await prisma.users.findMany({
+      where: {
+        OR: [
+          {
+            teacher_profile: {
+              SIG: SIG,
+            },
+          },
+          {
+            administrator_profile: {
+              SIG: SIG,
+            },
+          },
+          {
+            user_schools: {
+              some: {
+                SIG: SIG,
+              },
+            },
+          },
+        ],
+      },
+      select: {
+        name: true,
+        last_name: true,
+        id: true,
+        id_card: true,
+        role: true,
+        phone: true,
+        email: true,
+        is_active: true,
+      },
+    });
+    return rows;
   }
 }

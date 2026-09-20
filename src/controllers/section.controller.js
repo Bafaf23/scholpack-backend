@@ -5,7 +5,7 @@ import logger from "../utils/logger.js";
 import { getCurrentPeriod } from "../utils/periodAc.js";
 
 export const createSection = async (req, res) => {
-  const SIG = /* req.user.SIG */ "SIG3728";
+  const SIG = req.user.SIG;
   const id_year = req.body.yearId;
   const name = req.body.name;
   const guide_id = req.body.teacherId;
@@ -167,11 +167,12 @@ export const getStudentsBySection = async (req, res) => {
 
     if (!section || section.length === 0) {
       logger.info("No hay estudiantes en esta seccion o la seccion no exite");
-      return res.status(404).json({
+      return res.status(400).json({
         success: false,
         code: "SECTION_EMPTY",
         message:
           "Aula disponible: Esta sección no cuenta con estudiantes inscritos actualmente.",
+        data: [],
       });
     }
 

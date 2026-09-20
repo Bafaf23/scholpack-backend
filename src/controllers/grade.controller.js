@@ -13,6 +13,7 @@ import logger from "../utils/logger.js";
 export const createGrade = async (req, res) => {
   const { id_evaluation, id_student, grade } = req.body ?? {};
 
+
   if (!id_evaluation || !id_student || grade == null) {
     return res.status(400).json({
       success: false,
@@ -95,6 +96,7 @@ export const createGrade = async (req, res) => {
  */
 export const getGradeStudents = async (req, res) => {
   const { id_load_academic } = req.params;
+  const { id_lapse } = req.query;
 
   // Validar presencia y formato válido del ID de la carga académica
   if (
@@ -127,6 +129,76 @@ export const getGradeStudents = async (req, res) => {
         `Sin notas registradas para la carga académica ID: ${academicLoadId}`,
       );
       return res.status(200).json({
+        success: true,
+        code: "NO_GRADES_RECORDED",
+        message:
+          "No se encontraron calificaciones registradas para esta asignación académica.",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      code: "GRADES_FETCHED",
+      message: "Listado de calificaciones recuperado con éxito.",
+      data: gradeStudents,
+    });
+  } catch (error) {
+    logger.error(`❌ Error en getGradeStudents: ${error.message}`, {
+      stack: error.stack,
+    });
+    return res.status(500).json({
+      success: false,
+      code: "GET_GRADES_INTERNAL_ERROR",
+      message:
+        "Error interno en el servidor al intentar recuperar la sábana de calificaciones.",
+      error: error.message,
+    });
+  }
+};
+
+/**
+ * Obtiene todas las calificaciones de de un estudiante por seccion.
+ *
+ * @async
+ * @function geGradeActivity
+ * @param {import("express").Request} req - Objeto de solicitud de Express (recibe id_load_academic en params).
+ * @param {import("express").Response} res - Objeto de respuesta de Express.
+ * @returns {Promise<import("express").Response>} Respuesta HTTP en formato JSON con la lista de calificaciones.
+ */
+export const geGradeActivity = async (req, res) => {
+  const { id_load_academic } = req.params;
+
+  // Validar presencia y formato válido del ID de la carga académica
+  if (
+    !id_load_academic ||
+    id_load_academic === "undefined" ||
+    isNaN(Number(id_load_academic))
+  ) {
+    logger.warn(
+      "Petición rechazada: ID de carga académica inválido o ausente.",
+    );
+    return res.status(400).json({
+      success: false,
+      code: "MISSING_ACADEMIC_LOAD_ID",
+      message:
+        "El identificador de la carga académica debe ser un número válido.",
+    });
+  }
+
+  console.log(id_load_academic);
+
+  try {
+    const academicLoadId = Number(id_load_academic);
+
+    logger.info(`Cargando notas y actividades...`);
+
+    const gradeStudents = await Grade.getGradeByLoadAcadsemic(academicLoadId);
+
+    if (!gradeStudents || gradeStudents.length === 0) {
+      logger.info(
+        `Sin notas registradas para la carga académica ID: ${academicLoadId}`,
+      );
+      return res.status(404).json({
         success: true,
         code: "NO_GRADES_RECORDED",
         message:

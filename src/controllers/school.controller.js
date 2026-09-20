@@ -16,10 +16,11 @@ export const getAllSchools = async (req, res) => {
     const schools = await School.getAllSchools();
 
     if (schools.length === 0) {
-      console.warn(`⚠️ [NOT FOUND] No se encontraron colegios registrados`);
+      logger.warn(`No se encontraron colegios registrados`);
       return res.status(200).json({
         success: true,
         message: "No hay intituciones registradas por el momento",
+        data: [],
       });
     }
 
@@ -128,9 +129,7 @@ export const createSchool = async (req, res) => {
   const school = req.body;
 
   if (!school || Object.keys(school).length === 0) {
-    console.warn(
-      `⚠️ [NOT FOUND] No se encontró informacion para realizar el registro`,
-    );
+    logger.warn(`No se encontró informacion para realizar el registro`);
     return res.status(400).json({
       success: false,
       code: "EMPTY_PAYLOAD",
@@ -339,7 +338,7 @@ export const getRoles = async (_req, res) => {
  */
 export async function checkSchool(req, res) {
   const subdomain = req.params;
-  
+
   try {
     logger.debug("Verificando el subdominio...");
     const exiteSubdomain = await School.checkSubdomain(
@@ -369,3 +368,28 @@ export async function checkSchool(req, res) {
     });
   }
 }
+
+/**
+ * Obiene el CDDE registrados en el sistema
+ */
+export const cdde = async (req, res) => {
+  try {
+    logger.info("Cargando centros de desarrollo...");
+    const cdde = await School.getCdde();
+    console.log(cdde);
+    logger.info("Exito, centros cargados");
+    return res.status(200).json({
+      success: true,
+      message: "centros de desarollo localizados",
+      data: cdde,
+    });
+  } catch (error) {
+    logger.error("No se pudo cargar los CDEE", error);
+    return res.status(500).json({
+      success: false,
+      code: "ROLES_FETCH_FAILED",
+      message: "No se puedo realizar la operacion, intenta mas tarde",
+      error: e.message,
+    });
+  }
+};

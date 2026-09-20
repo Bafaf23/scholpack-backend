@@ -59,14 +59,12 @@ model subject {
   code_subject String  @id @db.VarChar(20)
   name         String  @db.VarChar(255)
   abbreviation String? @db.VarChar(5)
-  year_id      Int
   SIG          String  @db.VarChar(10)
 
   created_at DateTime @default(now())
-  updated_at DateTime @default(now()) @updatedAt
+  updated_at DateTime @updatedAt
 
   school school @relation(fields: [SIG], references: [SIG], onDelete: Cascade)
-  year   year   @relation(fields: [year_id], references: [id], onDelete: Restrict)
 
   load_academics   load_academic[]
   pending_subjects pending_subject[]
@@ -126,7 +124,6 @@ model year {
   created_at DateTime @default(now())
   updated_at DateTime @default(now()) @updatedAt
 
-  subjects    subject[]
   school      school       @relation(fields: [SIG], references: [SIG], onDelete: Cascade)
   sections    section[]
   enrollments enrollment[]
@@ -164,6 +161,8 @@ model user_schools{
   user_id  Int
   SIG      String
 
+  is_active   Boolean @default(true)
+
   user     users     @relation(fields: [user_id], references: [id], onDelete: Cascade)
   school   school    @relation(fields: [SIG], references: [SIG], onDelete: Cascade)
 }
@@ -178,7 +177,7 @@ model role {
 
 model academic_periods {
   id         Int      @id @default(autoincrement())
-  name       String   @unique
+  name       String  
   start_date DateTime
   end_date   DateTime
   is_active  Boolean  @default(true)
@@ -202,6 +201,8 @@ model administrator {
   created_at DateTime @default(now())
   updated_at DateTime @default(now()) @updatedAt
 
+  is_active Boolean @default(true)
+
   user   users  @relation(fields: [id_user], references: [id], onDelete: Cascade)
   school school @relation(fields: [SIG], references: [SIG], onDelete: Cascade)
 
@@ -215,7 +216,7 @@ model teacher {
   is_active Boolean @default(true)
 
   created_at DateTime @default(now())
-  updated_at DateTime @default(now()) @updatedAt
+  updated_at DateTime @updatedAt
 
   user   users  @relation(fields: [id_user], references: [id], onDelete: Cascade)
   school school @relation(fields: [SIG], references: [SIG], onDelete: Cascade)
@@ -240,11 +241,11 @@ model student {
   pants_size        String            @db.VarChar(50)
   shoe_size         String            @db.VarChar(50)
   gender            gender_enum       @default(M)
-  birth_date        DateTime          @db.Date
+  birth_date        DateTime?          @db.Date
   condition         student_condition @default(nuevo_ingreso)
 
   created_at DateTime @default(now())
-  updated_at DateTime @default(now()) @updatedAt
+  updated_at DateTime @updatedAt
 
   user             users          @relation(fields: [id_user], references: [id], onDelete: Cascade)
   school           school         @relation(fields: [SIG], references: [SIG], onDelete: Cascade)

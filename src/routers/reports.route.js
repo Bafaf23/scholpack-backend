@@ -21,7 +21,7 @@ router.get(
 );
 
 router.get(
-  "/:id_student/:id_section/:id_period/boleta",
+  "/:id_student/boleta",
   verificarAutenticacion,
   permitirRoles("administrador", "gestion", "estudiante"),
   reportCard,
@@ -36,8 +36,8 @@ router.get(
 
 router.get(
   "/:id_section/noteSheet",
-  /* verificarAutenticacion,
-  permitirRoles("administrador", "gestion"), */
+  verificarAutenticacion,
+  permitirRoles("administrador", "gestion"),
   sheetNote,
 );
 

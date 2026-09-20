@@ -27,10 +27,10 @@ export class LoadAcademic {
     try {
       const result = await prisma.load_academic.create({
         data: {
-          id_teacher: loadAcademic.id_teacher,
+          id_teacher: Number(loadAcademic.id_teacher),
           SIG: loadAcademic.SIG,
-          id_section: loadAcademic.id_section,
-          id_period: loadAcademic.id_period,
+          id_section: Number(loadAcademic.id_section),
+          id_period: Number(loadAcademic.id_period),
           id_subject: loadAcademic.id_subject,
           created_at: loadAcademic.created_at,
         },
@@ -43,7 +43,7 @@ export class LoadAcademic {
   }
 
   /**
-   ** Obtiene una lista de toda la acarga academica de colegio segun el perido activo de un colegio espesifico
+   ** Obtiene una lista de toda la acarga academica de colegio segun el perido activo de un colegio espesifico o la carga academica de una seccion
    * @param {string} SIG - codigo unico del cada escuela
    * @param {number} id_section - identificador de la seccion
    * @returns {Array<object>} - Lista de la carga academica del period activo del colegio
@@ -109,7 +109,6 @@ export class LoadAcademic {
       });
 
       const agroupBySection = rows.reduce((acc, row) => {
-        // 1. Clave única de agrupación por sección
         const sectionKey = `${row.section.year.name}-${row.section.name}`;
         if (!sectionKey) return acc;
 
@@ -128,15 +127,15 @@ export class LoadAcademic {
 
         // 3. Verificar si la materia ya existe dentro de esta sección
         const exists = acc[sectionKey].academicLoad.some(
-          (item) => item.subject.code_subject === row.subject?.code_subject,
+          (item) => item.id_load_academic === row.id,
         );
 
-        // 4. Agregar la materia junto a su docente
+        // 4. Agregar la materia si el registro no ha sido procesado
         if (!exists && row.subject) {
           const teacherUser = row.teacher?.user;
 
           acc[sectionKey].academicLoad.push({
-            id_load_academic: row.id, // Se asigna correctamente a cada registro de la materia
+            id_load_academic: row.id,
             subject: {
               code_subject: row.subject.code_subject,
               name: row.subject.name,

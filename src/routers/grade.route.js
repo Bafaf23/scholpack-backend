@@ -2,6 +2,7 @@ import { Router } from "express";
 import {
   createGrade,
   getGradeStudents,
+  geGradeActivity,
 } from "../controllers/grade.controller.js";
 import {
   verificarAutenticacion,
@@ -13,15 +14,28 @@ const router = Router();
 router.put("/", verificarAutenticacion, permitirRoles("profesor"), createGrade);
 
 router.get(
-  "/:id_load_academic",
-  /* verificarAutenticacion, */
-  /*   permitirRoles(
+  "/:id_load_academic/activity",
+  verificarAutenticacion,
+  permitirRoles(
     "profesor",
     "administrador",
     "estudiante",
     "director",
     "gestion",
-  ), */
+  ),
+  geGradeActivity,
+);
+
+router.get(
+  "/:id_load_academic",
+  verificarAutenticacion,
+  permitirRoles(
+    "profesor",
+    "administrador",
+    "estudiante",
+    "director",
+    "gestion",
+  ),
   getGradeStudents,
 );
 export default router;

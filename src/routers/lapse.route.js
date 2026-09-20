@@ -29,7 +29,7 @@ router.put(
 router.put(
   "/end/:id",
   verificarAutenticacion,
-  permitirRoles("Administrador"),
+  permitirRoles("administrador", "director"),
   endLapse,
 );
 router.get(

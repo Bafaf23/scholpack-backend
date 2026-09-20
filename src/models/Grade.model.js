@@ -18,7 +18,6 @@ export class Grade {
    * @returns {Promise<boolean>}
    */
   static async create({ id_evaluation, id_student, grade }) {
-    console.log("ID de evaluación a insertar:", id_evaluation);
     try {
       return await prisma.grade.create({
         data: {
@@ -33,20 +32,24 @@ export class Grade {
   }
 
   /**
-   * Obtiene todas las notas de los estudiantes asociadas a una Carga Académica específica.
+   * Obtiene la nota definitiva final por materia (promedio de los 3 lapsos) por alumno.
    *
-   * @param {number} id_load_academic - ID de la carga académica (asignación docente-materia-sección).
-   * @returns {Promise<Array<Object>>} Lista de calificaciones estructuradas.
+   * @param {Array} id_load_academics - ID de la carga académica (asignación docente-materia-sección).
+   * @returns {Promise<Object>} Objeto con las definitivas finales por estudiante y materia.
    */
-  static async getBySection(id_load_academic) {
+  static async getBySection(id_load_academics) {
     try {
-      const loadAcademicId = Number(id_load_academic);
+      const loadAcademicIds = Array.isArray(id_load_academics)
+        ? id_load_academics.map(Number)
+        : [Number(id_load_academics)];
 
       const grades = await prisma.grade.findMany({
         where: {
           evaluation: {
             evaluation_plan: {
-              id_load_academic: loadAcademicId,
+              id_load_academic: {
+                in: loadAcademicIds,
+              },
             },
           },
         },
@@ -60,6 +63,7 @@ export class Grade {
               id: true,
               id_user: true,
               gender: true,
+              tuition_number: true,
               birth_date: true,
               user: {
                 select: {
@@ -97,36 +101,71 @@ export class Grade {
           },
         },
       });
-      const gradesMap = grades.reduce((acc, curr) => {
-        const studentCard = curr.student?.user?.id_card || curr.id_student;
+
+      // 1. Agrupar por: Alumno -> Materia -> Lapso
+      const lapsesMap = grades.reduce((acc, curr) => {
+        const studentTuitionNumber = curr.student?.tuition_number;
         const subject =
-          curr.evaluation?.evaluation_plan?.load_academic.subject.abbreviation;
+          curr.evaluation?.evaluation_plan?.load_academic?.subject
+            ?.abbreviation;
+        const lapseId = curr.evaluation?.evaluation_plan?.id_lapse;
 
-        const grade = Number(curr.grade) || 0;
+        if (!studentTuitionNumber || !subject || !lapseId) return acc;
+
+        const rawGrade = curr.grade;
+        const grade =
+          rawGrade !== null && rawGrade !== undefined
+            ? typeof rawGrade.toNumber === "function"
+              ? rawGrade.toNumber()
+              : Number(rawGrade)
+            : 0;
+
         const percentage = Number(curr.evaluation?.porcentage) || 0;
+        const aporteEvaluacion = (grade * percentage) / 100;
 
-        const aporteEvaluacion = grade * (percentage / 100);
-
-        if (!acc[studentCard]) {
-          acc[studentCard] = {};
+        if (!acc[studentTuitionNumber]) {
+          acc[studentTuitionNumber] = {};
         }
 
-        if (!acc[studentCard][subject]) {
-          acc[studentCard][subject] = 0;
+        if (!acc[studentTuitionNumber][subject]) {
+          acc[studentTuitionNumber][subject] = {};
         }
 
-        acc[studentCard][subject] += aporteEvaluacion;
+        if (!acc[studentTuitionNumber][subject][lapseId]) {
+          acc[studentTuitionNumber][subject][lapseId] = 0;
+        }
+
+        // Sumar el porcentaje de esta evaluación dentro de su lapso
+        acc[studentTuitionNumber][subject][lapseId] += aporteEvaluacion;
 
         return acc;
       }, {});
 
-      Object.keys(gradesMap).forEach((student) => {
-        Object.keys(gradesMap[student]).forEach((subject) => {
-          gradesMap[student][subject] = Math.round(gradesMap[student][subject]);
+      // 2. Promediar las notas acumuladas de los lapsos para obtener la definitiva final
+      const finalGradesMap = {};
+
+      Object.keys(lapsesMap).forEach((student) => {
+        finalGradesMap[student] = {};
+
+        Object.keys(lapsesMap[student]).forEach((subject) => {
+          const lapses = lapsesMap[student][subject];
+          const lapseKeys = Object.keys(lapses);
+
+          // Suma de la nota final redondeada de cada lapso
+          const sumLapseGrades = lapseKeys.reduce((sum, lapseId) => {
+            return sum + Math.round(lapses[lapseId]);
+          }, 0);
+
+          // Promedio entre los 3 lapsos (o la cantidad de lapsos registrados)
+          const totalLapses = lapseKeys.length || 1;
+          const finalAverage = sumLapseGrades / totalLapses;
+
+          // Nota definitiva final redondeada
+          finalGradesMap[student][subject] = Math.round(finalAverage);
         });
       });
 
-      return gradesMap;
+      return finalGradesMap;
     } catch (error) {
       console.error(`❌ Error en Grade.getBySection: ${error.message}`);
       throw error;
@@ -377,11 +416,78 @@ export class Grade {
           students,
         };
       };
-      console.dir(formatSheetNoteData, { depth: null, color: true });
       return formatSheetNoteData;
     } catch (error) {
       console.error("❌ Error en getGradesForSheetNote:", error);
       throw error;
     }
+  }
+
+  /**
+   * Obtiene todas las calificaciones de un estudiante segun carga academica junto con las actividades
+   * @param {number} idLoadAcademic
+   * @param {number} idEvaluation
+   */
+  static async getGradeByLoadAcadsemic(idLoadAcademic) {
+    try {
+      const rows = await prisma.evaluation_plan_detail.findMany({
+        where: {
+          evaluation_plan: {
+            id_load_academic: Number(idLoadAcademic),
+          },
+        },
+        select: {
+          id: true,
+          date: true,
+          referent_teorical: true,
+          activity: true,
+          porcentage: true,
+          evaluation_plan: {
+            select: {
+              lapse: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+              load_academic: {
+                select: {
+                  subject: {
+                    select: {
+                      name: true,
+                      code_subject: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+          grades: {
+            select: {
+              id: true,
+              grade: true,
+              student: {
+                select: {
+                  tuition_number: true,
+                  id: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      const gardePorce = rows.flatMap((item) =>
+        item.grades.map((g) => ({
+          evaluation_id: item.id,
+          tuition_number: g.student?.tuition_number,
+          grade: Number(g.grade),
+        })),
+      );
+
+      console.dir(gardePorce, { depth: null, color: true });
+
+      return gardePorce;
+    } catch (err) {}
   }
 }

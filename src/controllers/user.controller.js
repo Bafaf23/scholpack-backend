@@ -37,14 +37,10 @@ export const createUser = async (req, res) => {
   }
 
   try {
-    console.log("BODY RECIBIDO EN BACKEND:", req.body);
-    console.log("SIG EXTRAÍDO:", req.user?.SIG);
-
     const document = (req.body.typeDocuement + req.body.document).trim();
     const rawDocument = req.body.document ? String(req.body.document) : "";
     const passgeneric = rawDocument.substring(0, 4) + "@2026";
 
-    console.log(req.body.SIG);
     const formattedName = formatText(req.body.name);
 
     const user = await Users.create({
@@ -54,7 +50,7 @@ export const createUser = async (req, res) => {
       email: req.body.email.trim(),
       phone: req.body.phone,
       role_id: req.body.role_id,
-      SIG: req.user.SIG,
+      SIG: req.user.SIG || req.body.SIG,
       password: passgeneric,
     });
 
@@ -70,7 +66,7 @@ export const createUser = async (req, res) => {
 
     const userFir = user.name;
 
-    logger.debug("Iniciaindo proceso de envio de correo de bienvenida.");
+    logger.info("Iniciaindo proceso de envio de correo de bienvenida.");
     await welcomeEmail(formattedName, req.body.email).catch((error) => {
       console.error(
         "❌ [Background Task Error]: Falló el envío del correo de bienvenida:",
@@ -78,7 +74,7 @@ export const createUser = async (req, res) => {
       );
     });
 
-    logger.debug("Registro prosesado con exito.", { name: userFir });
+    logger.info("Registro prosesado con exito.", { name: userFir });
 
     return res.status(201).json({
       success: true,
@@ -112,10 +108,11 @@ export const getUsers = async (req, res) => {
 
     if (!users || users.length === 0) {
       logger.warn(`No hay usuarios registrados.`);
-      return res.status(404).json({
+      return res.status(200).json({
         success: false,
         code: "USERS_NOT_FOUND",
         message: "No se registran cuentas de usuario creadas en el sistema.",
+        data: [],
       });
     }
 
@@ -425,6 +422,64 @@ export const getProfile = async (req, res) => {
       success: false,
       code: "GET_PROFILE_INTERNAL_ERROR",
       message: "Error interno al compilar el estado del perfil.",
+      error: error.message,
+    });
+  }
+};
+
+/**
+ * Obtiene a todos el personal de un colegio, excluyendo a los estudiantes
+ *
+ * @async
+ * @function userSchool
+ * @param {import("express").Request} req - Objeto de solicitud de Express.
+ * @param {import("express").Response} res - Objeto de respuesta de Express.
+ * @returns {Promise<import("express").Response>} Respuesta HTTP en formato JSON con la lista de escuelas.
+ */
+export const userSchool = async (req, res) => {
+  const SIG = req.user.SIG;
+  const id = req.user.id;
+
+  if (!SIG) {
+    logger.error("SIG no encontrado", { SIG });
+    return res.status(404).json({
+      success: false,
+      code: "MISSING_SCHOOL_SIG",
+      message: "El codigo SIG es necesario",
+    });
+  }
+
+  try {
+    logger.info("cargando..., por favor espera...");
+    const users = await Users.usersSchool(SIG);
+
+    if (!users || users.length == 0) {
+      logger.error("No hay usuarios es este colegio o el SIG es incorrecto.");
+      return res.status(402).json({
+        success: false,
+        code: "USER_CREATION_FAILED",
+        message:
+          "No se pudo procesar la inserción del usuario. Verifica los campos duplicados.",
+      });
+    }
+
+    const usersProces = users.filter((item) => item.id !== id);
+
+    logger.info("Carga completada!");
+
+    return res.status(201).json({
+      success: true,
+      code: "USER_CREATED",
+      message: "Cuenta de usuario creada correctamente.",
+      data: usersProces,
+    });
+  } catch (error) {
+    console.error("❌ Error en createUser:", error);
+    return res.status(500).json({
+      success: false,
+      code: "CREATE_USER_INTERNAL_ERROR",
+      message:
+        "Fallo técnico en el servidor al intentar dar de alta al usuario.",
       error: error.message,
     });
   }

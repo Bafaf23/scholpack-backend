@@ -7,6 +7,7 @@ import {
   updateSchool,
   getRoles,
   checkSchool,
+  cdde,
 } from "../controllers/school.controller.js";
 import {
   verificarAutenticacion,
@@ -39,5 +40,7 @@ router.get(
 );
 
 router.get("/check/:subdomain", checkSchool);
+
+router.get("/cdde/cdde", verificarAutenticacion, permitirRoles("sudo"), cdde);
 
 export default router;

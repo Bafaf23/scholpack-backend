@@ -90,6 +90,8 @@ export const createLoadAcademic = async (req, res) => {
 export const getLoadAcademic = async (req, res) => {
   const SIG = req.user?.SIG;
 
+  console.log(SIG);
+
   if (!SIG) {
     return res.status(400).json({
       success: false,
@@ -102,7 +104,7 @@ export const getLoadAcademic = async (req, res) => {
   try {
     logger.info("Buscando datos, por favor espere...");
     const result = await LoadAcademic.get({ SIG: SIG });
-
+    console.dir(result, { depth: null, color: true });
     if (result.length == 0) {
       logger.info("NO se encontro carga academica para", { SIG: SIG });
       return res.status(404).json({
