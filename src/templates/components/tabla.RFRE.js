@@ -19,9 +19,9 @@ export const TablaRendimiento = ({
   const studentsList = section?.students || [];
 
   // 1. Extraer el objeto mapa de notas principal
-  const gradesLookup = Array.isArray(grades) && grades[0] ? grades[0] : {};
+  const gradesLookup = grades;
 
-  // Helper local para extraer la cédula normalizada (ej: "V30123456")
+  // Helper local para extraer la mtricula normalizada
   const getStudentCard = (s) => {
     const rawCard = String(s?.tuition_number).trim();
     if (!rawCard) return;

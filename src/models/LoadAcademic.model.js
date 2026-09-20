@@ -43,7 +43,7 @@ export class LoadAcademic {
   }
 
   /**
-   ** Obtiene una lista de toda la acarga academica de colegio segun el perido activo de un colegio espesifico
+   ** Obtiene una lista de toda la acarga academica de colegio segun el perido activo de un colegio espesifico o la carga academica de una seccion
    * @param {string} SIG - codigo unico del cada escuela
    * @param {number} id_section - identificador de la seccion
    * @returns {Array<object>} - Lista de la carga academica del period activo del colegio
@@ -111,8 +111,6 @@ export class LoadAcademic {
       const agroupBySection = rows.reduce((acc, row) => {
         const sectionKey = `${row.section.year.name}-${row.section.name}`;
         if (!sectionKey) return acc;
-
-        console.log(sectionKey);
 
         // 2. Inicializar la estructura base de la sección si no existe
         if (!acc[sectionKey]) {

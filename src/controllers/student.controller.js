@@ -624,8 +624,6 @@ export const getRecordStudent = async (req, res) => {
       isArray: Array.isArray(record),
     });
 
-    console.dir(record, { depth: null, colors: true });
-
     /*   const periodsMap = {};
 
     record.forEach((row) => {

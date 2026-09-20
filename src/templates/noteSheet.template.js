@@ -1,24 +1,18 @@
 /**
- * Plantilla de consolidado de calificaciones por sección y año (Formato Vertical Sincronizado).
- * @param {object} section - objeto informativo de la sección
- * @param {Array<object>} students - estudiantes procesados con sus definitivas estructuradas
- * @param {Array<object>} subjects - asignaturas únicas de esa sección
- * @param {object} laspseActive - datos del lapso/momento académico activo
- * @returns {string} Código HTML listo para ser procesado por Puppeteer
+ * Plantilla de consolidado de calificaciones por sección y año (Soporta hasta 12+ materias en Portrait).
  */
 export function noteSheet({
   section,
   loadAcademic,
   laspseActive,
   school,
-  grades = [],
+  grades = {},
 }) {
-  // Blinda las variables locales contra valores nulos o tipos de datos incorrectos
-  const validSubjects = Array.isArray(loadAcademic[0].academicLoad)
+  const validSubjects = Array.isArray(loadAcademic?.[0]?.academicLoad)
     ? loadAcademic[0].academicLoad
     : [];
   const validStudents = Array.isArray(section?.students)
-    ? section?.students
+    ? section.students
     : [];
 
   const totalEstudiantes = validStudents.length;
@@ -36,6 +30,19 @@ export function noteSheet({
     ? Object.assign({}, ...grades)
     : grades;
 
+  // CÁLCULO DINÁMICO DE DENSIDAD SEGÚN MATERIAS
+  const subjectCount = validSubjects.length;
+  const isHighDensity = subjectCount >= 9;
+
+  // Clases condicionales según cantidad de materias
+  const fontSizeName = isHighDensity ? "text-[8.5px]" : "text-[9.5px]";
+  const fontSizeGrades = isHighDensity ? "text-[8px]" : "text-[10px]";
+  const fontSizeHeaders = isHighDensity ? "text-[8px]" : "text-[9px]";
+  const colWidthName = isHighDensity
+    ? "w-[95px] min-w-[95px]"
+    : "w-[110px] min-w-[110px]";
+  const cellPadding = isHighDensity ? "p-0" : "p-0.5";
+
   return `<!DOCTYPE html>
   <html lang="es" class="bg-white h-full">
     <head>
@@ -45,121 +52,154 @@ export function noteSheet({
         @media print {
           @page {
             size: portrait;
-            margin: 0.6cm;
+            margin: 0.4cm;
           }
-          body { color: #0f172a; }
+          body { color: #0f172a; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        }
+        /* Garantiza que la tabla respete estrictamente los anchos calculados */
+        table {
+          table-layout: fixed;
+          width: 100%;
         }
       </style>
     </head>
     <body class="antialiased text-slate-800 p-0">
       <main class="max-w-[210mm] mx-auto bg-white p-2 min-h-screen flex flex-col justify-between">
         <div>
-          <header class="flex justify-between items-center border-b border-slate-200 pb-3 text-xs">
+          <!-- Encabezado Oficial -->
+          <header class="flex justify-between items-center border-b-2 border-slate-200 pb-1.5 text-xs">
             <div>
-              <h2 class="font-bold text-[12px] text-slate-500">República Bolivariana de Venezuela</h2>
-              <p class="font-bold text-slate-500 text-[11px]">Ministerio del Poder Popular para la Educación</p>
-              <h1 class="font-extrabold uppercase text-slate-900 text-lg mt-0.5">${
+              <h2 class="font-bold text-[10px] text-slate-500">República Bolivariana de Venezuela</h2>
+              <p class="font-bold text-slate-500 text-[10px]">Ministerio del Poder Popular para la Educación</p>
+              <h1 class="font-black uppercase text-slate-900 text-sm mt-0.5">${
                 school?.name || "N/A"
               }</h1>
             </div>
-            <div class="text-right text-[11px] text-slate-500 space-y-0.5">
+            <div class="text-right text-[11px] text-slate-600 space-y-0.5">
               <p><span class="font-bold">Fecha:</span> ${new Date().toLocaleDateString(
                 "es-VE",
               )}</p>
-              <p><strong class="font-bold">Codigo SIG:</strong> ${
+              <p><strong class="font-bold">Código SIG:</strong> ${
                 school?.SIG || "N/A"
               }</p>
             </div>
           </header>
   
-          <section class="my-3 flex justify-between items-center bg-slate-50 border border-slate-200/60 p-2.5 px-4 rounded-xl">
+          <!-- Resumen del Informe -->
+          <section class="my-1.5 flex justify-between items-center bg-slate-50 border border-slate-200 p-1.5 rounded-lg">
             <div>
-              <span class="text-[9px] font-bold uppercase tracking-widest text-indigo-600 bg-indigo-50 px-2 rounded border border-indigo-100">
+              <span class="text-[8px] font-bold uppercase tracking-widest text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100">
                 Control de Estudios
               </span>
-              <h2 class="text-sm font-black text-slate-950 tracking-tight mt-0.5">Resumen de Rendimiento Academico</h2>
+              <h2 class="text-xs font-black text-slate-950 tracking-tight mt-0.5">Consolidado Anual de Calificaciones</h2>
             </div>
-            <div class="text-right text-xs font-medium text-slate-600 space-y-0.5">
-              <p><strong class="text-slate-900">Momento académico:</strong> ${
-                laspseActive?.name || ""
-              }</p>
-              <p><strong class="text-slate-900">Año / Sección:</strong> ${
+            <div class="text-right text-[11px] font-medium text-slate-700 space-y-0.5 flex gap-3">
+              <p><strong class="text-slate-900">Año/Sección:</strong> ${
                 section?.name || ""
               } "${section?.nomenclature || ""}"</p>
-              <p><strong class="text-slate-900">Período Escolar:</strong> ${
-                laspseActive?.period.name || ""
+              <p><strong class="text-slate-900">Período:</strong> ${
+                laspseActive?.period?.name || "N/A"
               }</p>
             </div>
           </section>
   
-          <div class="overflow-hidden border border-slate-300 rounded-xl shadow-sm">
-            <table class="w-full border-collapse text-center text-[12px]">
+          <!-- Tabla Consolidada de Notas -->
+          <div class="overflow-hidden border-2 border-slate-300 rounded-lg shadow-sm">
+            <table class="w-full border-collapse text-center">
               <thead>
+                <!-- Fila 1: Materias -->
                 <tr class="bg-slate-900 text-white font-bold uppercase tracking-wider text-[9px]">
-                  <th class="p-2 border-r border-slate-800 w-[95px]">Cédula / Matricula</th>
-                  <th class="text-left p-2 pl-3 bg-slate-950 w-[25%] border-r border-slate-800">Nombre y Apellido</th>
+                  <th rowspan="2" class="p-1 border-r border-b border-slate-800 w-[50px]">Cédula</th>
+                  <th rowspan="2" class="text-left p-1 pl-1.5 bg-slate-950 border-r border-b border-slate-800 ${colWidthName}">Nombre y Apellido</th>
                   ${validSubjects
                     .map(
                       (subject) => `
-                    <th class="p-2 border-r border-slate-800 bg-indigo-950/40 text-indigo-200 max-w-[80px] truncate" title="${
-                      subject.subject.name
+                    <th colspan="4" class="p-0.5 border-r border-b border-slate-800 bg-indigo-950/70 text-indigo-100 text-center font-black overflow-hidden truncate" title="${
+                      subject.subject?.name || ""
                     }">
-                      ${subject.subject.abbreviation}
+                      ${subject.subject?.abbreviation || "MAT"}
                     </th>`,
                     )
                     .join("")}
-                  <th class="p-2 bg-slate-800 text-slate-200 w-[45px]">Prom</th>
-                  <th class="p-2 bg-slate-800 text-slate-200 w-[70px]">Estatus</th>
+                  <th rowspan="2" class="p-1 bg-slate-800 text-slate-200 w-[28px] border-b border-slate-700 text-[8px]">Prom</th>
+                  <th rowspan="2" class="p-1 bg-slate-800 text-slate-200 w-[45px] border-b border-slate-700 text-[8px]">Estatus</th>
+                </tr>
+                <!-- Fila 2: Subcolumnas de Lapsos -->
+                <tr class="bg-slate-800 text-slate-300 font-bold ${fontSizeHeaders} border-b border-slate-300">
+                  ${validSubjects
+                    .map(
+                      () => `
+                    <th class="p-0 border-r border-slate-700">L1</th>
+                    <th class="p-0 border-r border-slate-700">L2</th>
+                    <th class="p-0 border-r border-slate-700">L3</th>
+                    <th class="p-0 border-r border-slate-600 bg-indigo-900/50 text-indigo-200 font-black">DEF</th>`,
+                    )
+                    .join("")}
                 </tr>
               </thead>
-              <tbody class="divide-y divide-slate-200 text-slate-700">
+              <tbody class="divide-y divide-slate-200 text-slate-800">
                 ${validStudents
                   .map((student) => {
                     const studentCardId =
-                      student.id_card || student.tuition_number;
-
+                      student.tuition_number || student.id_card;
                     const studentGrades = normalizedGrades[studentCardId] || {};
-                    const scoresList = Object.values(studentGrades).filter(
-                      (val) => typeof val === "number" && !isNaN(val),
-                    );
-
-                    // Calculo de promedio
-                    const average =
-                      scoresList > 0
-                        ? (
-                            scoresList.reduce((acc, curr) => acc + curr, 0) /
-                            scoresList.length
-                          ).toFixed(0)
-                        : "0";
+                    const defScores = [];
 
                     return `
-                  <tr class="h-7 odd:bg-slate-50/50">
-                    <td class="p-1.5 border-r border-slate-200 font-medium text-slate-500">${studentCardId}</td>
-                    <td class="text-left p-1.5 pl-3 font-bold text-slate-900 border-r border-slate-200 uppercase truncate">
-                      ${student.name} ${student.last_name}
+                  <tr class="odd:bg-slate-50/60">
+                    <td class="p-0.5 border-r border-slate-200 font-mono text-[8.5px] text-slate-600 align-middle truncate">${studentCardId}</td>
+                    
+                    <!-- Celda de Nombre Completo ajustada al modo de alta densidad -->
+                    <td class="text-left p-1 pl-1.5 font-bold text-slate-900 border-r border-slate-200 uppercase whitespace-normal break-words ${colWidthName}${fontSizeName} leading-tight align-middle">
+                      ${student.name}${student.last_name}
                     </td>
+
                     ${validSubjects
                       .map((subject) => {
-                        const subjectId = subject.subject?.abbreviation;
-                        const score = studentGrades[subjectId];
-                        const scoreValid = score ? score : "0";
-                        const esAplazado = scoreValid < 10;
+                        const subjectCode = subject.subject?.abbreviation;
+                        const subjectData = studentGrades[subjectCode] || {};
+
+                        const l1 = subjectData.L1 ?? "-";
+                        const l2 = subjectData.L2 ?? "-";
+                        const l3 = subjectData.L3 ?? "-";
+                        const def = subjectData.DEF ?? subjectData.score ?? "-";
+
+                        if (typeof def === "number" && !isNaN(def)) {
+                          defScores.push(def);
+                        }
+
+                        const esAplazado = typeof def === "number" && def < 10;
 
                         return `
-                      <td class="p-1.5 border-r ${
-                        esAplazado ? "text-red-600 font-bold bg-red-50/40" : ""
+                      <td class="${cellPadding} border-r border-slate-100 ${fontSizeGrades} text-slate-500 align-middle">${l1}</td>
+                      <td class="${cellPadding} border-r border-slate-100 ${fontSizeGrades} text-slate-500 align-middle">${l2}</td>
+                      <td class="${cellPadding} border-r border-slate-100 ${fontSizeGrades} text-slate-500 align-middle">${l3}</td>
+                      <td class="${cellPadding} border-r border-slate-200 ${fontSizeGrades} font-bold bg-indigo-50/40 align-middle ${
+                        esAplazado
+                          ? "text-red-600 bg-red-100/60 font-black"
+                          : "text-slate-950"
                       }">
-                        ${scoreValid}
+                        ${def}
                       </td>`;
                       })
                       .join("")}
-                    <td class="p-1.5 border-r font-bold bg-slate-50 text-slate-900">${average}</td>
-                    <td class="p-1.5 font-bold uppercase text-[9px] ${
+                    ${(() => {
+                      const average =
+                        defScores.length > 0
+                          ? Math.round(
+                              defScores.reduce((acc, curr) => acc + curr, 0) /
+                                defScores.length,
+                            )
+                          : 0;
+
+                      return `<td class="p-0 border-r font-black bg-slate-100 text-slate-950 ${fontSizeGrades} align-middle">${average}</td>`;
+                    })()}
+                    <td class="p-0 font-bold uppercase text-[7.5px] align-middle ${
                       student.status === "aprobado"
-                        ? "text-emerald-700 bg-emerald-50/30"
-                        : "text-amber-700 bg-amber-50/30"
+                        ? "text-emerald-800 bg-emerald-100/50"
+                        : "text-amber-800 bg-amber-100/50"
                     }">
-                      ${student.status}
+                      ${student.status || "Cursando"}
                     </td>
                   </tr>`;
                   })
@@ -168,51 +208,45 @@ export function noteSheet({
             </table>
           </div>
   
-          <section class="mt-3 grid grid-cols-3 gap-3 text-center text-[12px]">
-            <div class="bg-slate-50 border border-slate-200/60 p-2 rounded-xl">
-              <p class="font-bold text-slate-400 uppercase tracking-wider">Eficiencia de Sección</p>
-              <p class="text-xs font-black text-slate-800 mt-0.5">${eficiencia}%</p>
+          <!-- Estadísticas Generales -->
+          <section class="mt-2 grid grid-cols-4 gap-2 text-center text-xs">
+            <div class="bg-slate-50 border border-slate-200 p-1 rounded-lg">
+              <p class="font-bold text-slate-500 uppercase tracking-wider text-[8px]">Eficiencia</p>
+              <p class="text-xs font-black text-slate-900 mt-0.5">${eficiencia}%</p>
             </div>
-            <div class="bg-indigo-50/30 border border-indigo-100 p-2 rounded-xl">
-              <p class="font-bold text-indigo-500 uppercase tracking-wider">Aprobados</p>
-              <p class="text-xs font-black text-indigo-950 mt-0.5">${aprobados} Estudiantes</p>
+            <div class="bg-indigo-50/40 border border-indigo-100 p-1 rounded-lg">
+              <p class="font-bold text-indigo-600 uppercase tracking-wider text-[8px]">Aprobados</p>
+              <p class="text-xs font-black text-indigo-950 mt-0.5">${aplazados} Est.</p>
             </div>
-            <div class="bg-amber-50/30 border border-amber-100 p-2 rounded-xl">
-              <p class="font-bold text-amber-600 uppercase tracking-wider">Estrategia de Evaluación (EE)</p>
-              <p class="text-xs font-black text-amber-950 mt-0.5">${aplazados} Estudiantes</p>
+            <div class="bg-amber-50/40 border border-amber-100 p-1 rounded-lg">
+              <p class="font-bold text-amber-700 uppercase tracking-wider text-[8px]">Aplazados (EE)</p>
+              <p class="text-xs font-black text-amber-950 mt-0.5">${aplazados} Est.</p>
             </div>
-            <div class="bg-red-50/30 border border-red-100 p-2 rounded-xl col-span-3">
-              <p class="font-bold text-red-600 uppercase tracking-wider">Reprobados</p>
-              <p class="text-xs font-black text-red-950 mt-0.5">${reprobados} Estudiantes</p>
+            <div class="bg-red-50/40 border border-red-100 p-1 rounded-lg">
+              <p class="font-bold text-red-700 uppercase tracking-wider text-[8px]">Reprobados</p>
+              <p class="text-xs font-black text-red-950 mt-0.5">${reprobados} Est.</p>
             </div>
           </section>
         </div>
   
-        <div class="mt-8">
-          <footer class="grid grid-cols-2 gap-12 text-center text-[10px]">
+        <!-- Firmas -->
+        <div class="mt-2">
+          <footer class="grid grid-cols-2 gap-8 text-center text-xs">
             <div class="flex flex-col items-center">
-              <div class="w-40 border-b border-slate-300 h-6"></div>
-              <p class="mt-1 font-bold text-slate-800">${
+              <div class="w-36 border-b-2 border-slate-300 h-4"></div>
+              <p class="mt-1 font-bold text-slate-900 text-[11px]">${
                 section?.guide
-                  ? `${section.guide.name} ${section.guide.last_name}`
+                  ? `${section.guide.name}${section.guide.last_name}`
                   : "Docente Guía"
               }</p>
-              <p class="mt-1 font-bold text-slate-800">${
-                section?.guide ? `${section.guide.document}` : " "
-              }</p>
-              <p class="text-[9px] text-slate-400">Firma Autorizada</p>
+              <p class="text-[8px] text-slate-400 uppercase font-bold">Firma Autorizada</p>
             </div>
             <div class="flex flex-col items-center">
-              <div class="w-40 border-b border-slate-300 h-6"></div>
-              <p class="mt-1 font-bold text-slate-800">Coordinación de Control de Estudios</p>
-              <p class="text-[9px] text-slate-400">Firma y Sello Húmedo</p>
+              <div class="w-36 border-b-2 border-slate-300 h-4"></div>
+              <p class="mt-1 font-bold text-slate-900 text-[11px]">Coordinación de Control de Estudios</p>
+              <p class="text-[8px] text-slate-400 uppercase font-bold">Firma y Sello Húmedo</p>
             </div>
           </footer>
-  
-          <div class="mt-5 pt-1.5 border-t border-slate-100 flex justify-between items-center text-[8px] text-slate-400">
-            <p>Documento Emitido de forma Segura por SchoPack</p>
-            <p>ID de Auditoría: ${school.SIG}-${section.id}#${Math.floor(Math.random() * 10)}</p>
-          </div>
         </div>
       </main>
     </body>

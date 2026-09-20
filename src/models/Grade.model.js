@@ -32,20 +32,24 @@ export class Grade {
   }
 
   /**
-   * Obtiene la nota definitiva por alumno segun su carga academica.
+   * Obtiene la nota definitiva final por materia (promedio de los 3 lapsos) por alumno.
    *
-   * @param {number} id_load_academic - ID de la carga académica (asignación docente-materia-sección).
-   * @returns {Promise<Object>} Lista de calificaciones estructuradas.
+   * @param {Array} id_load_academics - ID de la carga académica (asignación docente-materia-sección).
+   * @returns {Promise<Object>} Objeto con las definitivas finales por estudiante y materia.
    */
-  static async getBySection(id_load_academic) {
+  static async getBySection(id_load_academics) {
     try {
-      const loadAcademicId = Number(id_load_academic);
+      const loadAcademicIds = Array.isArray(id_load_academics)
+        ? id_load_academics.map(Number)
+        : [Number(id_load_academics)];
 
       const grades = await prisma.grade.findMany({
         where: {
           evaluation: {
             evaluation_plan: {
-              id_load_academic: loadAcademicId,
+              id_load_academic: {
+                in: loadAcademicIds,
+              },
             },
           },
         },
@@ -98,38 +102,70 @@ export class Grade {
         },
       });
 
-      const gradesMap = grades.reduce((acc, curr) => {
+      // 1. Agrupar por: Alumno -> Materia -> Lapso
+      const lapsesMap = grades.reduce((acc, curr) => {
         const studentTuitionNumber = curr.student?.tuition_number;
         const subject =
-          curr.evaluation?.evaluation_plan?.load_academic.subject.abbreviation;
+          curr.evaluation?.evaluation_plan?.load_academic?.subject
+            ?.abbreviation;
+        const lapseId = curr.evaluation?.evaluation_plan?.id_lapse;
 
-        const grade = Number(curr.grade) || 0;
+        if (!studentTuitionNumber || !subject || !lapseId) return acc;
+
+        const rawGrade = curr.grade;
+        const grade =
+          rawGrade !== null && rawGrade !== undefined
+            ? typeof rawGrade.toNumber === "function"
+              ? rawGrade.toNumber()
+              : Number(rawGrade)
+            : 0;
+
         const percentage = Number(curr.evaluation?.porcentage) || 0;
-
-        const aporteEvaluacion = grade * (percentage / 100);
+        const aporteEvaluacion = (grade * percentage) / 100;
 
         if (!acc[studentTuitionNumber]) {
           acc[studentTuitionNumber] = {};
         }
 
         if (!acc[studentTuitionNumber][subject]) {
-          acc[studentTuitionNumber][subject] = 0;
+          acc[studentTuitionNumber][subject] = {};
         }
 
-        acc[studentTuitionNumber][subject] += aporteEvaluacion;
+        if (!acc[studentTuitionNumber][subject][lapseId]) {
+          acc[studentTuitionNumber][subject][lapseId] = 0;
+        }
+
+        // Sumar el porcentaje de esta evaluación dentro de su lapso
+        acc[studentTuitionNumber][subject][lapseId] += aporteEvaluacion;
 
         return acc;
       }, {});
 
-      Object.keys(gradesMap).forEach((student) => {
-        Object.keys(gradesMap[student]).forEach((subject) => {
-          gradesMap[student][subject] = Math.round(gradesMap[student][subject]);
+      // 2. Promediar las notas acumuladas de los lapsos para obtener la definitiva final
+      const finalGradesMap = {};
+
+      Object.keys(lapsesMap).forEach((student) => {
+        finalGradesMap[student] = {};
+
+        Object.keys(lapsesMap[student]).forEach((subject) => {
+          const lapses = lapsesMap[student][subject];
+          const lapseKeys = Object.keys(lapses);
+
+          // Suma de la nota final redondeada de cada lapso
+          const sumLapseGrades = lapseKeys.reduce((sum, lapseId) => {
+            return sum + Math.round(lapses[lapseId]);
+          }, 0);
+
+          // Promedio entre los 3 lapsos (o la cantidad de lapsos registrados)
+          const totalLapses = lapseKeys.length || 1;
+          const finalAverage = sumLapseGrades / totalLapses;
+
+          // Nota definitiva final redondeada
+          finalGradesMap[student][subject] = Math.round(finalAverage);
         });
       });
 
-      console.log(gradesMap);
-
-      return gradesMap;
+      return finalGradesMap;
     } catch (error) {
       console.error(`❌ Error en Grade.getBySection: ${error.message}`);
       throw error;

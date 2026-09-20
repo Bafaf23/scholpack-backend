@@ -189,8 +189,6 @@ export const reportCard = async (req, res) => {
 
     logger.info("Inicianado carculo de promedio...");
 
-    console.dir(section, { depth: null, color: true });
-
     const uniqueSubjects = grades[0]?.subjects;
     const arrayDefinitive = [];
 
@@ -436,7 +434,7 @@ export const sheetNote = async (req, res) => {
       .map((load) => load.id_load_academic);
 
     const grades = await Promise.all(
-      loadAcademicId.map((id) => Grade.getBySection(id)),
+      loadAcademicId.map((id) => Grade.getBySection(id, lapseActive.id)),
     );
 
     /*   const studentsMap = rows.students.reduce((acc, row) => {
@@ -592,9 +590,11 @@ export const resumenFinalE = async (req, res) => {
       .map((load) => load.id_load_academic)
       .filter(Boolean);
 
-    const gradesRawList = await Promise.all(
-      loadAcademicIds.map((id) => Grade.getBySection(id)),
-    );
+    console.log(loadAcademicIds);
+
+    const gradesRawList = await Grade.getBySection(loadAcademicIds);
+
+    console.log(gradesRawList);
 
     if (!school || !section || !loadAcademic)
       return logger.info("No hay informacion necesaria para generar el RFRE");
@@ -636,6 +636,6 @@ export const resumenFinalE = async (req, res) => {
     res.setHeader("Content-Length", pdfBuffer.length);
     return res.send(pdfBuffer);
   } catch (error) {
-    logger.error(error);
+    console.error(error);
   }
 };
