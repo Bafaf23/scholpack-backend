@@ -155,7 +155,6 @@ exports.Prisma.SubjectScalarFieldEnum = {
   code_subject: 'code_subject',
   name: 'name',
   abbreviation: 'abbreviation',
-  year_id: 'year_id',
   SIG: 'SIG',
   created_at: 'created_at',
   updated_at: 'updated_at'
@@ -199,7 +198,8 @@ exports.Prisma.UsersScalarFieldEnum = {
 exports.Prisma.User_schoolsScalarFieldEnum = {
   id: 'id',
   user_id: 'user_id',
-  SIG: 'SIG'
+  SIG: 'SIG',
+  is_active: 'is_active'
 };
 
 exports.Prisma.RoleScalarFieldEnum = {
@@ -221,7 +221,8 @@ exports.Prisma.AdministratorScalarFieldEnum = {
   id_user: 'id_user',
   SIG: 'SIG',
   created_at: 'created_at',
-  updated_at: 'updated_at'
+  updated_at: 'updated_at',
+  is_active: 'is_active'
 };
 
 exports.Prisma.TeacherScalarFieldEnum = {

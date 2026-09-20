@@ -235,4 +235,13 @@ export class School {
       throw e;
     }
   }
+
+  static async getCdde() {
+    return await prisma.cdcee.findMany({
+      select: {
+        id: true,
+        name: true,
+      },
+    });
+  }
 }

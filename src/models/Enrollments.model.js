@@ -18,30 +18,26 @@ export class Enrollments {
     try {
       const row = await prisma.enrollment.findMany({
         where: {
-          id_student: id_student,
+          id_student: Number(id_student),
         },
         select: {
           status: true,
-          academic_periods: {
+          period: {
             select: {
               id: true,
               name: true,
             },
           },
-        },
-        section: {
-          select: {
-            name: true,
-            year: {
-              select: {
-                name: true,
+          section: {
+            select: {
+              id: true,
+              name: true,
+              year: {
+                select: {
+                  name: true,
+                },
               },
             },
-          },
-        },
-        orderBy: {
-          academic_period: {
-            start_date: "desc",
           },
         },
       });

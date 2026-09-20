@@ -216,33 +216,30 @@ export class Sections {
 
   /**
    * Busca la sección actual de un estudiante junto a los datos del año escolar.
+   * @param {string} SIG
+   * @param {number} id - id del estudiante
+   * @param {number} id_period
    */
   static async getSectionByStudent(SIG, id, id_period) {
     try {
-      return await prisma.users.findUnique({
+      return await prisma.student.findUnique({
         where: {
           id: id,
+          AND,
+          SIG: SIG,
         },
         select: {
-          id: true, // user_id
-          name: true, // user_name
-          student_profile: {
+          enrollments: {
             select: {
-              id: true, // student_id
-              enrollments: {
-                orderBy: {
-                  id: "desc", // ORDER BY e.id DESC
-                },
-                take: 1, // LIMIT 1
+              id: true,
+              section: {
                 select: {
-                  id: true,
-                  status: true,
-                  section: {
-                    select: {
-                      id: true,
-                      id_period: true,
-                    },
-                  },
+                  name,
+                },
+              },
+              year: {
+                select: {
+                  name: true,
                 },
               },
             },

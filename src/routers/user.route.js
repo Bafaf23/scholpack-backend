@@ -39,6 +39,6 @@ router.put("/", verificarAutenticacion, permitirRoles("sudo"), updateUser);
 
 router.get("/profile", verificarAutenticacion, getProfile);
 
-router.get("/userSchool", /* verificarAutenticacion, */ userSchool);
+router.get("/userSchool", verificarAutenticacion, userSchool);
 
 export default router;

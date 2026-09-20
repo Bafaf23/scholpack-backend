@@ -72,7 +72,7 @@ export class Lapse {
   static async endLapse(id) {
     try {
       return await prisma.lapse.update({
-        where: { id: id },
+        where: { id: Number(id) },
         data: {
           is_active: false,
         },

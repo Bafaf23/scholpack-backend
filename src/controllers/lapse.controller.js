@@ -61,7 +61,7 @@ export const getLapses = async (req, res) => {
  */
 export const getLapseActive = async (req, res) => {
   try {
-    const { SIG, id_period } = req.user ?? {};
+    const { SIG, id_period } = req.user;
 
     if (!SIG) {
       logger.error("Sin codigo SIG");
@@ -71,9 +71,9 @@ export const getLapseActive = async (req, res) => {
         message: "El código SIG de la institución es requerido en la sesión.",
       });
     }
-    logger.info("🔃 Sincronizano los momentos academicos...");
+    logger.info("Sincronizano los momentos academicos...");
     const lapses = await Lapse.getLapses(SIG, id_period);
-    const lapseActive = lapses?.find((lapse) => lapse.is_active === 1);
+    const lapseActive = lapses?.find((lapse) => lapse.is_active === true);
 
     if (!lapseActive) {
       logger.error("Sin Momento activo.");
@@ -81,7 +81,7 @@ export const getLapseActive = async (req, res) => {
         success: true,
         code: "NO_ACTIVE_LAPSE",
         message: "No hay ningún lapso activo en el período actual.",
-        data: null,
+        data: [],
       });
     }
 

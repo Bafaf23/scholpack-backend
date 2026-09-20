@@ -32,10 +32,10 @@ export class Grade {
   }
 
   /**
-   * Obtiene todas las notas de los estudiantes asociadas a una Carga Académica específica.
+   * Obtiene la nota definitiva por alumno segun su carga academica.
    *
    * @param {number} id_load_academic - ID de la carga académica (asignación docente-materia-sección).
-   * @returns {Promise<Array<Object>>} Lista de calificaciones estructuradas.
+   * @returns {Promise<Object>} Lista de calificaciones estructuradas.
    */
   static async getBySection(id_load_academic) {
     try {
@@ -97,6 +97,7 @@ export class Grade {
           },
         },
       });
+
       const gradesMap = grades.reduce((acc, curr) => {
         const studentTuitionNumber = curr.student?.tuition_number;
         const subject =
@@ -125,6 +126,8 @@ export class Grade {
           gradesMap[student][subject] = Math.round(gradesMap[student][subject]);
         });
       });
+
+      console.log(gradesMap);
 
       return gradesMap;
     } catch (error) {
@@ -377,11 +380,78 @@ export class Grade {
           students,
         };
       };
-      console.dir(formatSheetNoteData, { depth: null, color: true });
       return formatSheetNoteData;
     } catch (error) {
       console.error("❌ Error en getGradesForSheetNote:", error);
       throw error;
     }
+  }
+
+  /**
+   * Obtiene todas las calificaciones de un estudiante segun carga academica junto con las actividades
+   * @param {number} idLoadAcademic
+   * @param {number} idEvaluation
+   */
+  static async getGradeByLoadAcadsemic(idLoadAcademic) {
+    try {
+      const rows = await prisma.evaluation_plan_detail.findMany({
+        where: {
+          evaluation_plan: {
+            id_load_academic: Number(idLoadAcademic),
+          },
+        },
+        select: {
+          id: true,
+          date: true,
+          referent_teorical: true,
+          activity: true,
+          porcentage: true,
+          evaluation_plan: {
+            select: {
+              lapse: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+              load_academic: {
+                select: {
+                  subject: {
+                    select: {
+                      name: true,
+                      code_subject: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+          grades: {
+            select: {
+              id: true,
+              grade: true,
+              student: {
+                select: {
+                  tuition_number: true,
+                  id: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      const gardePorce = rows.flatMap((item) =>
+        item.grades.map((g) => ({
+          evaluation_id: item.id,
+          tuition_number: g.student?.tuition_number,
+          grade: Number(g.grade),
+        })),
+      );
+
+      console.dir(gardePorce, { depth: null, color: true });
+
+      return gardePorce;
+    } catch (err) {}
   }
 }

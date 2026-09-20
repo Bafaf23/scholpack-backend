@@ -109,9 +109,10 @@ export class LoadAcademic {
       });
 
       const agroupBySection = rows.reduce((acc, row) => {
-        // 1. Clave única de agrupación por sección
         const sectionKey = `${row.section.year.name}-${row.section.name}`;
         if (!sectionKey) return acc;
+
+        console.log(sectionKey);
 
         // 2. Inicializar la estructura base de la sección si no existe
         if (!acc[sectionKey]) {
@@ -128,15 +129,15 @@ export class LoadAcademic {
 
         // 3. Verificar si la materia ya existe dentro de esta sección
         const exists = acc[sectionKey].academicLoad.some(
-          (item) => item.subject.code_subject === row.subject?.code_subject,
+          (item) => item.id_load_academic === row.id,
         );
 
-        // 4. Agregar la materia junto a su docente
+        // 4. Agregar la materia si el registro no ha sido procesado
         if (!exists && row.subject) {
           const teacherUser = row.teacher?.user;
 
           acc[sectionKey].academicLoad.push({
-            id_load_academic: row.id, // Se asigna correctamente a cada registro de la materia
+            id_load_academic: row.id,
             subject: {
               code_subject: row.subject.code_subject,
               name: row.subject.name,

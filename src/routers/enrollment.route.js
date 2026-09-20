@@ -4,6 +4,7 @@ import {
   getApprovedStudents,
   processStartStates,
   updatePreInscrip,
+  periodStudent,
 } from "../controllers/enrollments.controller.js";
 import {
   verificarAutenticacion,
@@ -28,7 +29,7 @@ router.get(
 router.post(
   "/",
   verificarAutenticacion,
-  permitirRoles("Administrador"),
+  permitirRoles("administrador"),
   processStartStates,
 );
 
@@ -37,6 +38,13 @@ router.post(
   verificarAutenticacion,
   permitirRoles("administrador"),
   updatePreInscrip,
+);
+
+router.get(
+  "/:id_student/enrollments",
+  verificarAutenticacion,
+  permitirRoles("administrador", "estudiante"),
+  periodStudent,
 );
 
 export default router;

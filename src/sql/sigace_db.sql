@@ -270,10 +270,10 @@ CREATE TABLE IF NOT EXISTS auth_tokens (
 
 INSERT INTO roles (name) VALUES 
 ('sudo'),
-('Estudiante'),
-('Profesor'),
-('Director'),
-('Administrador');
+('estudiante'),
+('profesor'),
+('director'),
+('administrador'), ("gestion"), ("subdirector")
 
 INSERT INTO schools (SIG, company_name, name, address, phone, email, type, DEA_CODE) VALUES 
 ('SIG1234', NULL, 'Escuela 1', 'Direccion 1', '1234567890', 'escuela1@gmail.com', 'Pública', 'DEA001');
@@ -281,8 +281,8 @@ INSERT INTO schools (SIG, company_name, name, address, phone, email, type, DEA_C
 INSERT INTO academic_periods (name, start_date, end_date, is_active, SIG) VALUES 
 ('2025-2026', '2025-09-15', '2026-07-31', TRUE, 'SIG1234');
 
-INSERT INTO users (document, name, last_name, email, phone, pass, role_id) VALUES 
-('V-30021867', 'Bryant', 'Facenda', 'bryantffacen@gmail.com', '1234567890', '$2b$10$bRnuv6.gvFqGmd.E2rvx4uI.E0Wta9yvSdtqH2AwAMO478qCTYHk.', 1);
+INSERT INTO users (id_card, name, last_name, email, phone, pass, role_id) VALUES 
+('V30021867', 'Bryant', 'Facenda', 'bryantffacen@gmail.com', '1234567890', '$2b$10$bRnuv6.gvFqGmd.E2rvx4uI.E0Wta9yvSdtqH2AwAMO478qCTYHk.', 1);
 
 -- Corregido: Asociados a 'SIG1234' para cumplir con la integridad referencial de la FK
 INSERT INTO years (name, SIG, order_year) VALUES 

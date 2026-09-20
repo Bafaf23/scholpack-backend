@@ -17,6 +17,7 @@ import logger from "../utils/logger.js";
 import { Academic_periods } from "../models/Academin_period.model.js";
 import { LoadAcademic } from "../models/LoadAcademic.model.js";
 import { promises } from "dns";
+import { Enrollments } from "../models/Enrollments.model.js";
 
 /**
  * CONFIGURACIÓN REUSABLE DE LANZAMIENTO PUPPETEER
@@ -142,11 +143,12 @@ export const sectionList = async (req, res) => {
  * @returns {Promise<import("express").Response>} Respuesta HTTP en formato JSON con la lista de escuelas.
  */
 export const reportCard = async (req, res) => {
-  const { id_student, id_section, id_period } = req.params;
+  const { id_student } = req.params;
   const SIG = req.user?.SIG;
+  const id_period = req.user?.id_period;
   let browser = null;
 
-  if (!id_student || !id_section) {
+  if (!id_student) {
     return res.status(400).json({
       success: false,
       code: "INCOMPLETE_BOLETA_PARAMS",
@@ -156,11 +158,16 @@ export const reportCard = async (req, res) => {
   }
 
   try {
+    const dataSec = await Enrollments.periodEnrollmentStudent(id_student);
+    const id_section = dataSec[0].section?.id;
+    console.log(dataSec);
+    console.log(SIG, id_section);
+
     logger.info("Generando el certificado..., espere por favor...");
     const [grades, section, student, school, periods] = await Promise.all([
       Students.grade({
         SIG: SIG,
-        idStudent: Number(id_student),
+        idStudent: id_student,
         idPeriod: id_period,
       }),
       Sections.getStudent({ id_section: id_section, SIG: SIG }),
@@ -182,6 +189,8 @@ export const reportCard = async (req, res) => {
 
     logger.info("Inicianado carculo de promedio...");
 
+    console.dir(section, { depth: null, color: true });
+
     const uniqueSubjects = grades[0]?.subjects;
     const arrayDefinitive = [];
 
@@ -202,8 +211,9 @@ export const reportCard = async (req, res) => {
         const scores = [scoreM1, scoreM2, scoreM3];
 
         const totamSum = scores.reduce((acc, curr) => acc + curr, 0);
-        const definitivingScore = totamSum / scores.length;
+        const definitivingScore = Math.round(totamSum / scores.length);
         arrayDefinitive.push(definitivingScore);
+
         return `<tr class="border-b border-slate-200 text-[12px]">
                   <td class="p-2 text-left pl-3 font-bold text-slate-700">${subject.name.toUpperCase()}</td>
                   <td class="p-2 text-center text-[13px] font-bold">${scoreM1}</td>
@@ -288,7 +298,7 @@ export const reportCard = async (req, res) => {
  */
 export const enrollmetP = async (req, res) => {
   const { id_student } = req.params;
-  const SIG = req.user?.SIG ;
+  const SIG = req.user?.SIG;
   const id_period = req.user?.id_period;
   let browser = null;
 

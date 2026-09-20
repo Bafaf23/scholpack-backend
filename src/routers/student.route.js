@@ -50,7 +50,7 @@ router.get(
 );
 
 router.get(
-  "/:id_student/record",
+  "/:id/record",
   verificarAutenticacion,
   permitirRoles("administrador", "estudiante"),
   getRecordStudent,

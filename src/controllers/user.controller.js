@@ -50,7 +50,7 @@ export const createUser = async (req, res) => {
       email: req.body.email.trim(),
       phone: req.body.phone,
       role_id: req.body.role_id,
-      SIG: req.user.SIG,
+      SIG: req.user.SIG || req.body.SIG,
       password: passgeneric,
     });
 
@@ -108,10 +108,11 @@ export const getUsers = async (req, res) => {
 
     if (!users || users.length === 0) {
       logger.warn(`No hay usuarios registrados.`);
-      return res.status(404).json({
+      return res.status(200).json({
         success: false,
         code: "USERS_NOT_FOUND",
         message: "No se registran cuentas de usuario creadas en el sistema.",
+        data: [],
       });
     }
 
@@ -436,8 +437,8 @@ export const getProfile = async (req, res) => {
  * @returns {Promise<import("express").Response>} Respuesta HTTP en formato JSON con la lista de escuelas.
  */
 export const userSchool = async (req, res) => {
-  const SIG = /* req.user.SIG */ "SIG4320";
-  const id = /* req.user.id */ 55;
+  const SIG = req.user.SIG;
+  const id = req.user.id;
 
   if (!SIG) {
     logger.error("SIG no encontrado", { SIG });

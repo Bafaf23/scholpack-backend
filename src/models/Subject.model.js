@@ -2,11 +2,10 @@ import { pool } from "../db.js";
 import { prisma } from "../lib/prisma.js";
 
 export class Subject {
-  constructor(code_subject, name, abbreviation, year_id, SIG) {
+  constructor(code_subject, name, abbreviation, SIG) {
     this.code_subject = code_subject;
     this.name = name;
     this.abbreviation = abbreviation;
-    this.year_id = year_id;
     this.SIG = SIG;
   }
 
@@ -21,7 +20,6 @@ export class Subject {
         data: {
           code_subject: subject.code_subject,
           name: subject.name,
-          year_id: Number(subject.year_id),
           SIG: subject.SIG,
           abbreviation: subject.abbreviation,
         },
@@ -40,11 +38,6 @@ export class Subject {
     try {
       return await prisma.subject.findMany({
         where: { SIG: SIG },
-        include: {
-          year: {
-            select: { name: true },
-          },
-        },
       });
     } catch (error) {
       throw error;
@@ -52,7 +45,7 @@ export class Subject {
   }
 
   /**
-   * Metodo para obtener todos los años cademicos de un colegio
+   * Metodo para obtener todos los años academicos de un colegio
    * @param {string} SIG - Codigo unico del colegio
    * @returns {Array<object>}
    */

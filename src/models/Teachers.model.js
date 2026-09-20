@@ -58,7 +58,7 @@ export class Teachers {
           load_academics: {
             where: {
               period: {
-                is_active: true, // Filtra por el período académico activo
+                is_active: true,
               },
             },
             select: {

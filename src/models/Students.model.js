@@ -282,7 +282,7 @@ export class Students {
   }
 
   /**
-   * Busca a un estudiante por su id_card
+   * Busca a un estudiante por su id
    * @param {number} id - id del estudiante
    * @return {object|null} - info del estudiante o null si no existe
    */
@@ -339,6 +339,31 @@ export class Students {
   }
 
   /**
+   * Busca a un estudiante por su id de usuario
+   * @param {number} id - id del usurio
+   * @return {object|null} - info del estudiante o null si no existe
+   */
+  static async byIdUser(id) {
+    try {
+      return await prisma.users.findFirst({
+        where: {
+          id: Number(id),
+        },
+        include: {
+          student_profile: {
+            select: {
+              id: true,
+            },
+          },
+        },
+      });
+    } catch (error) {
+      console.log(`Error en getStudentByID: ${error}`);
+      return null;
+    }
+  }
+
+  /**
    ** Recupera todo el récord académico del estudiante y lo agrupa por períodos lectivos, calculando la nota acumulativa   * por lapso en base al plan de evaluación real de su sección.
    * @param {number} id_student - ID del estudiante
    * @param {number} id_period - ID del periodo
@@ -346,84 +371,6 @@ export class Students {
    */
   static async record(id_student, id_period) {
     try {
-      const enrollmentQuery = {
-        where: {
-          id_period: id_period,
-        },
-        orderBy: {
-          created_at: "desc",
-        },
-        select: {
-          id: true,
-          status: true,
-          period: {
-            select: {
-              name: true,
-            },
-          },
-          year: {
-            select: {
-              name: true,
-            },
-          },
-          section: {
-            select: {
-              name: true,
-            },
-          },
-        },
-      };
-
-      return await prisma.student.findFirst({
-        where: { id: id_student },
-        select: {
-          id: true,
-          tuition_number: true,
-          user: {
-            select: {
-              id_card: true,
-              name: true,
-              last_name: true,
-            },
-          },
-          school: {
-            select: {
-              school_name: true,
-              SIG: true,
-            },
-          },
-          enrollments: enrollmentQuery,
-
-          grades: {
-            select: {
-              id: true,
-              grade: true,
-              evaluation: {
-                select: {
-                  referent_teorical: true,
-                  activity: true,
-                  porcentage: true,
-                  evaluation_plan: {
-                    select: {
-                      lapse: true,
-                      load_academic: {
-                        select: {
-                          subject: {
-                            select: {
-                              name: true,
-                              code_subject: true,
-                            },
-                          },
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      });
     } catch (error) {
       console.error("❌ Error en modelo Students.getRecordStudent:", error);
       throw error;
@@ -500,7 +447,7 @@ export class Students {
   static async pendingSubject(id_student) {
     try {
       return await prisma.pending_subject.findMany({
-        where: { id_student: id_student },
+        where: { id_student: Number(id_student) },
       });
     } catch (error) {
       throw error;
@@ -518,7 +465,7 @@ export class Students {
   static async grade({ SIG, idStudent, idPeriod }) {
     const rows = await prisma.grade.findMany({
       where: {
-        id_student: idStudent,
+        id_student: Number(idStudent),
         evaluation: {
           evaluation_plan: {
             lapse: {
@@ -554,6 +501,7 @@ export class Students {
                 lapse: {
                   select: {
                     id: true,
+                    is_active: true,
                     period: {
                       select: {
                         name: true,
@@ -570,9 +518,18 @@ export class Students {
       },
     });
 
+    const lapseInfoMap = {};
+
     const gradesByLapse = rows.reduce((acc, row) => {
       const lapsesName = row.evaluation?.evaluation_plan?.lapse?.name;
       const subject = row.evaluation?.evaluation_plan?.load_academic?.subject;
+
+      const lapseObj = row.evaluation?.evaluation_plan?.lapse;
+      const isActive = row.evaluation?.evaluation_plan?.lapse.is_active;
+
+      if (!lapseInfoMap[lapsesName]) {
+        lapseInfoMap[lapsesName] = lapseObj?.is_active ?? false;
+      }
 
       if (!acc[lapsesName]) {
         acc[lapsesName] = [];
@@ -643,6 +600,7 @@ export class Students {
         return {
           lapse_name,
           subjects: processedSubjects,
+          is_active: lapseInfoMap[lapse_name] ?? false,
         };
       },
     );

@@ -21,7 +21,7 @@ router.get(
 );
 
 router.get(
-  "/:id_student/:id_section/:id_period/boleta",
+  "/:id_student/boleta",
   verificarAutenticacion,
   permitirRoles("administrador", "gestion", "estudiante"),
   reportCard,
@@ -43,8 +43,8 @@ router.get(
 
 router.get(
   "/:id_section/rfre",
-  /*  verificarAutenticacion,
-  permitirRoles("administrador", "gestion", "director"), */
+  verificarAutenticacion,
+  permitirRoles("administrador", "gestion", "director"),
   resumenFinalE,
 );
 export default router;

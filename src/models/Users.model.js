@@ -223,19 +223,15 @@ export class Users {
 
         const idUser = createUser.id;
         const roleUser = Number(user.role_id);
+        const SIG = user.SIG;
 
         switch (roleUser) {
-          case 3:
-            await tx.user_schools.create({
-              data: { user_id: idUser, SIG: user.SIG },
-            });
-            break;
-          case 4:
-            const tuition_number = await generateTuitionNumber(user.SIG);
+          case 2:
+            const tuition_number = await tuitionNumber(user.SIG);
             await tx.student.create({
               data: {
                 id_user: idUser,
-                SIG: user.SIG,
+                SIG,
                 representative_id: user.representative_id,
                 tuition_number: tuition_number,
                 allergies: user.allergies,
@@ -251,29 +247,34 @@ export class Users {
               },
             });
             break;
-          case 5:
+          case 3:
             await tx.teacher.create({
               data: {
                 id_user: idUser,
-                SIG: user.SIG,
+                SIG,
                 is_active: true,
               },
             });
             break;
-          case 6:
+          case 4:
+            await tx.user_schools.create({
+              data: { user_id: idUser, SIG: user.SIG },
+            });
+            break;
+          case 5:
             await tx.administrator.create({
               data: {
                 id_user: idUser,
-                SIG: user.SIG,
+                SIG,
               },
             });
             break;
+          case 6:
           case 7:
-          case 8:
             await tx.user_schools.create({
               data: {
                 user_id: idUser,
-                SIG: user.SIG,
+                SIG,
               },
             });
             break;
@@ -323,7 +324,7 @@ export class Users {
         case "estudiante":
           sigRecord = await prisma.student.findFirst({
             where: { id_user: row.id },
-            select: { SIG: true },
+            select: { SIG: true, id: true },
           });
           break;
         case "profesor":
@@ -361,7 +362,7 @@ export class Users {
         email: row.email,
         is_first_login: row.is_first_login,
         role: row.role.name,
-        SIG: sigRecord.SIG || null,
+        SIG: sigRecord?.SIG || null,
       };
     } catch (error) {
       console.error("Error al obtener usuario por email:", error);

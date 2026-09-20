@@ -47,11 +47,10 @@ export const getSubjects = async (req, res) => {
     if (process.env.NODE_ENV !== "production") {
       console.table(
         subjects.map((subject) => ({
-          year_id: subject.year_id,
           code_subject: subject.code_subject,
+          abbreviation: subject.abbreviation,
           name: subject.name,
           SIG: subject.SIG,
-          year: subject.year.name,
         })),
       );
     }
@@ -83,10 +82,10 @@ export const getSubjects = async (req, res) => {
  * @returns {Promise<import("express").Response>} Respuesta HTTP en formato JSON con la lista de escuelas.
  */
 export const createSubject = async (req, res) => {
-  const { name, year_id } = req.body ?? {};
+  const { name } = req.body ?? {};
   const SIG = req.user?.SIG;
 
-  if (!name || !year_id) {
+  if (!name) {
     logger.error("No se recibieron los datos para continuar con el proceso", {
       body: name,
     });
@@ -99,31 +98,16 @@ export const createSubject = async (req, res) => {
   }
 
   try {
-    const years = await Subject.getYears(SIG);
-    const yearSelect = years.find((year) => year.id == year_id);
-
-    if (!yearSelect) {
-      logger.error(
-        `año escolar con ID [${year_id}] inválido para el SIG: ${SIG}`,
-      );
-      return res.status(400).json({
-        success: false,
-        code: "INVALID_YEAR_LEVEL",
-        message:
-          "El año escolar seleccionado no corresponde a la configuración de esta institución.",
-      });
-    }
-
     // Generando el codigo de la asiganatura
-    const suffix = String(yearSelect.name).substring(0, 1).toUpperCase();
-    const code_suffix = suffix.padStart(2, "0");
-    const code_subject = `${name.substring(0, 3).toUpperCase()}-${code_suffix}-${SIG}`;
+    const code_subject = `${name.substring(0, 3).toUpperCase()}${SIG}`;
+
+    //abreviatura de la asignatura
     const abbreviation = `${name.substring(0, 3).toUpperCase()}`;
 
     logger.info(`Código autogenerado consecutivo: ${code_subject}`);
 
     logger.info("Creando registro, espere por favor...");
-    const subject = new Subject(code_subject, name, abbreviation, year_id, SIG);
+    const subject = new Subject(code_subject, name, abbreviation, SIG);
     const subjectCreated = await Subject.create(subject);
 
     if (!subjectCreated) {

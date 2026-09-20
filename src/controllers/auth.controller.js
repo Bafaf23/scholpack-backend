@@ -6,6 +6,7 @@ import jsonwebtoken from "jsonwebtoken";
 import { sendResetPasswordEmail } from "../services/resend.service.js";
 import logger from "../utils/logger.js";
 import { School } from "../models/School.model.js";
+import { Students } from "../models/Students.model.js";
 
 const { sign } = jsonwebtoken;
 
@@ -76,6 +77,12 @@ export const login = async (req, res) => {
       roleName.toLowerCase(),
     );
 
+    let studentId = null;
+    if (roleName.toLowerCase() === "estudiante") {
+      const student = await Students.byIdUser(userId);
+      studentId = student ? student.student_profile?.id : null;
+    }
+
     // 4. Circuito de seguridad: Verificar si hay sistema abierto solo si existe SIG
     if (!isAdmin && SIG) {
       const isSystemOpen = await Academic_periods.hasActivePeriod(SIG);
@@ -102,7 +109,7 @@ export const login = async (req, res) => {
       : [];
 
     let activePeriod = Array.isArray(periodsList)
-      ? periodsList.find((p) => p.is_active === 1 || p.is_active === true)
+      ? periodsList.find((p) => p.is_active === true)
       : null;
 
     if (
@@ -185,6 +192,7 @@ export const login = async (req, res) => {
         mustChangePassword: false,
         user: {
           id: userId,
+          id_student: studentId,
           role: roleName,
           id_period: currentPeriodId,
           period: currentPeriodName,
