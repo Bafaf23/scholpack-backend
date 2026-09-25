@@ -5230,6 +5230,7 @@ export namespace Prisma {
     RIF: string | null
     is_active: boolean | null
     subdomain: string | null
+    is_enrollment_open: boolean | null
     created_at: Date | null
     updated_at: Date | null
     cdceId: number | null
@@ -5250,6 +5251,7 @@ export namespace Prisma {
     RIF: string | null
     is_active: boolean | null
     subdomain: string | null
+    is_enrollment_open: boolean | null
     created_at: Date | null
     updated_at: Date | null
     cdceId: number | null
@@ -5270,6 +5272,7 @@ export namespace Prisma {
     RIF: number
     is_active: number
     subdomain: number
+    is_enrollment_open: number
     created_at: number
     updated_at: number
     cdceId: number
@@ -5300,6 +5303,7 @@ export namespace Prisma {
     RIF?: true
     is_active?: true
     subdomain?: true
+    is_enrollment_open?: true
     created_at?: true
     updated_at?: true
     cdceId?: true
@@ -5320,6 +5324,7 @@ export namespace Prisma {
     RIF?: true
     is_active?: true
     subdomain?: true
+    is_enrollment_open?: true
     created_at?: true
     updated_at?: true
     cdceId?: true
@@ -5340,6 +5345,7 @@ export namespace Prisma {
     RIF?: true
     is_active?: true
     subdomain?: true
+    is_enrollment_open?: true
     created_at?: true
     updated_at?: true
     cdceId?: true
@@ -5447,6 +5453,7 @@ export namespace Prisma {
     RIF: string | null
     is_active: boolean
     subdomain: string | null
+    is_enrollment_open: boolean
     created_at: Date
     updated_at: Date
     cdceId: number
@@ -5486,6 +5493,7 @@ export namespace Prisma {
     RIF?: boolean
     is_active?: boolean
     subdomain?: boolean
+    is_enrollment_open?: boolean
     created_at?: boolean
     updated_at?: boolean
     cdceId?: boolean
@@ -5519,12 +5527,13 @@ export namespace Prisma {
     RIF?: boolean
     is_active?: boolean
     subdomain?: boolean
+    is_enrollment_open?: boolean
     created_at?: boolean
     updated_at?: boolean
     cdceId?: boolean
   }
 
-  export type schoolOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"SIG" | "school_name" | "type" | "company_name" | "address" | "city" | "municipality" | "state" | "phone" | "email" | "DEA_CODE" | "RIF" | "is_active" | "subdomain" | "created_at" | "updated_at" | "cdceId", ExtArgs["result"]["school"]>
+  export type schoolOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"SIG" | "school_name" | "type" | "company_name" | "address" | "city" | "municipality" | "state" | "phone" | "email" | "DEA_CODE" | "RIF" | "is_active" | "subdomain" | "is_enrollment_open" | "created_at" | "updated_at" | "cdceId", ExtArgs["result"]["school"]>
   export type schoolInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     cdcee?: boolean | cdceeDefaultArgs<ExtArgs>
     students?: boolean | school$studentsArgs<ExtArgs>
@@ -5568,6 +5577,7 @@ export namespace Prisma {
       RIF: string | null
       is_active: boolean
       subdomain: string | null
+      is_enrollment_open: boolean
       created_at: Date
       updated_at: Date
       cdceId: number
@@ -5964,6 +5974,7 @@ export namespace Prisma {
     readonly RIF: FieldRef<"school", 'String'>
     readonly is_active: FieldRef<"school", 'Boolean'>
     readonly subdomain: FieldRef<"school", 'String'>
+    readonly is_enrollment_open: FieldRef<"school", 'Boolean'>
     readonly created_at: FieldRef<"school", 'DateTime'>
     readonly updated_at: FieldRef<"school", 'DateTime'>
     readonly cdceId: FieldRef<"school", 'Int'>
@@ -26431,6 +26442,7 @@ export namespace Prisma {
     RIF: 'RIF',
     is_active: 'is_active',
     subdomain: 'subdomain',
+    is_enrollment_open: 'is_enrollment_open',
     created_at: 'created_at',
     updated_at: 'updated_at',
     cdceId: 'cdceId'
@@ -27068,6 +27080,7 @@ export namespace Prisma {
     RIF?: StringNullableFilter<"school"> | string | null
     is_active?: BoolFilter<"school"> | boolean
     subdomain?: StringNullableFilter<"school"> | string | null
+    is_enrollment_open?: BoolFilter<"school"> | boolean
     created_at?: DateTimeFilter<"school"> | Date | string
     updated_at?: DateTimeFilter<"school"> | Date | string
     cdceId?: IntFilter<"school"> | number
@@ -27098,6 +27111,7 @@ export namespace Prisma {
     RIF?: SortOrderInput | SortOrder
     is_active?: SortOrder
     subdomain?: SortOrderInput | SortOrder
+    is_enrollment_open?: SortOrder
     created_at?: SortOrder
     updated_at?: SortOrder
     cdceId?: SortOrder
@@ -27132,6 +27146,7 @@ export namespace Prisma {
     DEA_CODE?: StringFilter<"school"> | string
     RIF?: StringNullableFilter<"school"> | string | null
     is_active?: BoolFilter<"school"> | boolean
+    is_enrollment_open?: BoolFilter<"school"> | boolean
     created_at?: DateTimeFilter<"school"> | Date | string
     updated_at?: DateTimeFilter<"school"> | Date | string
     cdceId?: IntFilter<"school"> | number
@@ -27162,6 +27177,7 @@ export namespace Prisma {
     RIF?: SortOrderInput | SortOrder
     is_active?: SortOrder
     subdomain?: SortOrderInput | SortOrder
+    is_enrollment_open?: SortOrder
     created_at?: SortOrder
     updated_at?: SortOrder
     cdceId?: SortOrder
@@ -27190,6 +27206,7 @@ export namespace Prisma {
     RIF?: StringNullableWithAggregatesFilter<"school"> | string | null
     is_active?: BoolWithAggregatesFilter<"school"> | boolean
     subdomain?: StringNullableWithAggregatesFilter<"school"> | string | null
+    is_enrollment_open?: BoolWithAggregatesFilter<"school"> | boolean
     created_at?: DateTimeWithAggregatesFilter<"school"> | Date | string
     updated_at?: DateTimeWithAggregatesFilter<"school"> | Date | string
     cdceId?: IntWithAggregatesFilter<"school"> | number
@@ -28730,6 +28747,7 @@ export namespace Prisma {
     RIF?: string | null
     is_active?: boolean
     subdomain?: string | null
+    is_enrollment_open?: boolean
     created_at?: Date | string
     updated_at?: Date | string
     cdcee: cdceeCreateNestedOneWithoutSchoolsInput
@@ -28759,6 +28777,7 @@ export namespace Prisma {
     RIF?: string | null
     is_active?: boolean
     subdomain?: string | null
+    is_enrollment_open?: boolean
     created_at?: Date | string
     updated_at?: Date | string
     cdceId: number
@@ -28788,6 +28807,7 @@ export namespace Prisma {
     RIF?: NullableStringFieldUpdateOperationsInput | string | null
     is_active?: BoolFieldUpdateOperationsInput | boolean
     subdomain?: NullableStringFieldUpdateOperationsInput | string | null
+    is_enrollment_open?: BoolFieldUpdateOperationsInput | boolean
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
     cdcee?: cdceeUpdateOneRequiredWithoutSchoolsNestedInput
@@ -28817,6 +28837,7 @@ export namespace Prisma {
     RIF?: NullableStringFieldUpdateOperationsInput | string | null
     is_active?: BoolFieldUpdateOperationsInput | boolean
     subdomain?: NullableStringFieldUpdateOperationsInput | string | null
+    is_enrollment_open?: BoolFieldUpdateOperationsInput | boolean
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
     cdceId?: IntFieldUpdateOperationsInput | number
@@ -28846,6 +28867,7 @@ export namespace Prisma {
     RIF?: string | null
     is_active?: boolean
     subdomain?: string | null
+    is_enrollment_open?: boolean
     created_at?: Date | string
     updated_at?: Date | string
     cdceId: number
@@ -28866,6 +28888,7 @@ export namespace Prisma {
     RIF?: NullableStringFieldUpdateOperationsInput | string | null
     is_active?: BoolFieldUpdateOperationsInput | boolean
     subdomain?: NullableStringFieldUpdateOperationsInput | string | null
+    is_enrollment_open?: BoolFieldUpdateOperationsInput | boolean
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -28885,6 +28908,7 @@ export namespace Prisma {
     RIF?: NullableStringFieldUpdateOperationsInput | string | null
     is_active?: BoolFieldUpdateOperationsInput | boolean
     subdomain?: NullableStringFieldUpdateOperationsInput | string | null
+    is_enrollment_open?: BoolFieldUpdateOperationsInput | boolean
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
     cdceId?: IntFieldUpdateOperationsInput | number
@@ -30574,6 +30598,7 @@ export namespace Prisma {
     RIF?: SortOrder
     is_active?: SortOrder
     subdomain?: SortOrder
+    is_enrollment_open?: SortOrder
     created_at?: SortOrder
     updated_at?: SortOrder
     cdceId?: SortOrder
@@ -30598,6 +30623,7 @@ export namespace Prisma {
     RIF?: SortOrder
     is_active?: SortOrder
     subdomain?: SortOrder
+    is_enrollment_open?: SortOrder
     created_at?: SortOrder
     updated_at?: SortOrder
     cdceId?: SortOrder
@@ -30618,6 +30644,7 @@ export namespace Prisma {
     RIF?: SortOrder
     is_active?: SortOrder
     subdomain?: SortOrder
+    is_enrollment_open?: SortOrder
     created_at?: SortOrder
     updated_at?: SortOrder
     cdceId?: SortOrder
@@ -34329,6 +34356,7 @@ export namespace Prisma {
     RIF?: string | null
     is_active?: boolean
     subdomain?: string | null
+    is_enrollment_open?: boolean
     created_at?: Date | string
     updated_at?: Date | string
     students?: studentCreateNestedManyWithoutSchoolInput
@@ -34357,6 +34385,7 @@ export namespace Prisma {
     RIF?: string | null
     is_active?: boolean
     subdomain?: string | null
+    is_enrollment_open?: boolean
     created_at?: Date | string
     updated_at?: Date | string
     students?: studentUncheckedCreateNestedManyWithoutSchoolInput
@@ -34414,6 +34443,7 @@ export namespace Prisma {
     RIF?: StringNullableFilter<"school"> | string | null
     is_active?: BoolFilter<"school"> | boolean
     subdomain?: StringNullableFilter<"school"> | string | null
+    is_enrollment_open?: BoolFilter<"school"> | boolean
     created_at?: DateTimeFilter<"school"> | Date | string
     updated_at?: DateTimeFilter<"school"> | Date | string
     cdceId?: IntFilter<"school"> | number
@@ -35019,6 +35049,7 @@ export namespace Prisma {
     RIF?: string | null
     is_active?: boolean
     subdomain?: string | null
+    is_enrollment_open?: boolean
     created_at?: Date | string
     updated_at?: Date | string
     cdcee: cdceeCreateNestedOneWithoutSchoolsInput
@@ -35047,6 +35078,7 @@ export namespace Prisma {
     RIF?: string | null
     is_active?: boolean
     subdomain?: string | null
+    is_enrollment_open?: boolean
     created_at?: Date | string
     updated_at?: Date | string
     cdceId: number
@@ -35143,6 +35175,7 @@ export namespace Prisma {
     RIF?: NullableStringFieldUpdateOperationsInput | string | null
     is_active?: BoolFieldUpdateOperationsInput | boolean
     subdomain?: NullableStringFieldUpdateOperationsInput | string | null
+    is_enrollment_open?: BoolFieldUpdateOperationsInput | boolean
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
     cdcee?: cdceeUpdateOneRequiredWithoutSchoolsNestedInput
@@ -35171,6 +35204,7 @@ export namespace Prisma {
     RIF?: NullableStringFieldUpdateOperationsInput | string | null
     is_active?: BoolFieldUpdateOperationsInput | boolean
     subdomain?: NullableStringFieldUpdateOperationsInput | string | null
+    is_enrollment_open?: BoolFieldUpdateOperationsInput | boolean
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
     cdceId?: IntFieldUpdateOperationsInput | number
@@ -35360,6 +35394,7 @@ export namespace Prisma {
     RIF?: string | null
     is_active?: boolean
     subdomain?: string | null
+    is_enrollment_open?: boolean
     created_at?: Date | string
     updated_at?: Date | string
     cdcee: cdceeCreateNestedOneWithoutSchoolsInput
@@ -35388,6 +35423,7 @@ export namespace Prisma {
     RIF?: string | null
     is_active?: boolean
     subdomain?: string | null
+    is_enrollment_open?: boolean
     created_at?: Date | string
     updated_at?: Date | string
     cdceId: number
@@ -35496,6 +35532,7 @@ export namespace Prisma {
     RIF?: NullableStringFieldUpdateOperationsInput | string | null
     is_active?: BoolFieldUpdateOperationsInput | boolean
     subdomain?: NullableStringFieldUpdateOperationsInput | string | null
+    is_enrollment_open?: BoolFieldUpdateOperationsInput | boolean
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
     cdcee?: cdceeUpdateOneRequiredWithoutSchoolsNestedInput
@@ -35524,6 +35561,7 @@ export namespace Prisma {
     RIF?: NullableStringFieldUpdateOperationsInput | string | null
     is_active?: BoolFieldUpdateOperationsInput | boolean
     subdomain?: NullableStringFieldUpdateOperationsInput | string | null
+    is_enrollment_open?: BoolFieldUpdateOperationsInput | boolean
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
     cdceId?: IntFieldUpdateOperationsInput | number
@@ -35963,6 +36001,7 @@ export namespace Prisma {
     RIF?: string | null
     is_active?: boolean
     subdomain?: string | null
+    is_enrollment_open?: boolean
     created_at?: Date | string
     updated_at?: Date | string
     cdcee: cdceeCreateNestedOneWithoutSchoolsInput
@@ -35991,6 +36030,7 @@ export namespace Prisma {
     RIF?: string | null
     is_active?: boolean
     subdomain?: string | null
+    is_enrollment_open?: boolean
     created_at?: Date | string
     updated_at?: Date | string
     cdceId: number
@@ -36083,6 +36123,7 @@ export namespace Prisma {
     RIF?: NullableStringFieldUpdateOperationsInput | string | null
     is_active?: BoolFieldUpdateOperationsInput | boolean
     subdomain?: NullableStringFieldUpdateOperationsInput | string | null
+    is_enrollment_open?: BoolFieldUpdateOperationsInput | boolean
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
     cdcee?: cdceeUpdateOneRequiredWithoutSchoolsNestedInput
@@ -36111,6 +36152,7 @@ export namespace Prisma {
     RIF?: NullableStringFieldUpdateOperationsInput | string | null
     is_active?: BoolFieldUpdateOperationsInput | boolean
     subdomain?: NullableStringFieldUpdateOperationsInput | string | null
+    is_enrollment_open?: BoolFieldUpdateOperationsInput | boolean
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
     cdceId?: IntFieldUpdateOperationsInput | number
@@ -36220,6 +36262,7 @@ export namespace Prisma {
     RIF?: string | null
     is_active?: boolean
     subdomain?: string | null
+    is_enrollment_open?: boolean
     created_at?: Date | string
     updated_at?: Date | string
     cdcee: cdceeCreateNestedOneWithoutSchoolsInput
@@ -36248,6 +36291,7 @@ export namespace Prisma {
     RIF?: string | null
     is_active?: boolean
     subdomain?: string | null
+    is_enrollment_open?: boolean
     created_at?: Date | string
     updated_at?: Date | string
     cdceId: number
@@ -36439,6 +36483,7 @@ export namespace Prisma {
     RIF?: NullableStringFieldUpdateOperationsInput | string | null
     is_active?: BoolFieldUpdateOperationsInput | boolean
     subdomain?: NullableStringFieldUpdateOperationsInput | string | null
+    is_enrollment_open?: BoolFieldUpdateOperationsInput | boolean
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
     cdcee?: cdceeUpdateOneRequiredWithoutSchoolsNestedInput
@@ -36467,6 +36512,7 @@ export namespace Prisma {
     RIF?: NullableStringFieldUpdateOperationsInput | string | null
     is_active?: BoolFieldUpdateOperationsInput | boolean
     subdomain?: NullableStringFieldUpdateOperationsInput | string | null
+    is_enrollment_open?: BoolFieldUpdateOperationsInput | boolean
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
     cdceId?: IntFieldUpdateOperationsInput | number
@@ -36631,6 +36677,7 @@ export namespace Prisma {
     RIF?: string | null
     is_active?: boolean
     subdomain?: string | null
+    is_enrollment_open?: boolean
     created_at?: Date | string
     updated_at?: Date | string
     cdcee: cdceeCreateNestedOneWithoutSchoolsInput
@@ -36659,6 +36706,7 @@ export namespace Prisma {
     RIF?: string | null
     is_active?: boolean
     subdomain?: string | null
+    is_enrollment_open?: boolean
     created_at?: Date | string
     updated_at?: Date | string
     cdceId: number
@@ -36751,6 +36799,7 @@ export namespace Prisma {
     RIF?: NullableStringFieldUpdateOperationsInput | string | null
     is_active?: BoolFieldUpdateOperationsInput | boolean
     subdomain?: NullableStringFieldUpdateOperationsInput | string | null
+    is_enrollment_open?: BoolFieldUpdateOperationsInput | boolean
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
     cdcee?: cdceeUpdateOneRequiredWithoutSchoolsNestedInput
@@ -36779,6 +36828,7 @@ export namespace Prisma {
     RIF?: NullableStringFieldUpdateOperationsInput | string | null
     is_active?: BoolFieldUpdateOperationsInput | boolean
     subdomain?: NullableStringFieldUpdateOperationsInput | string | null
+    is_enrollment_open?: BoolFieldUpdateOperationsInput | boolean
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
     cdceId?: IntFieldUpdateOperationsInput | number
@@ -36849,6 +36899,7 @@ export namespace Prisma {
     RIF?: string | null
     is_active?: boolean
     subdomain?: string | null
+    is_enrollment_open?: boolean
     created_at?: Date | string
     updated_at?: Date | string
     cdcee: cdceeCreateNestedOneWithoutSchoolsInput
@@ -36877,6 +36928,7 @@ export namespace Prisma {
     RIF?: string | null
     is_active?: boolean
     subdomain?: string | null
+    is_enrollment_open?: boolean
     created_at?: Date | string
     updated_at?: Date | string
     cdceId: number
@@ -37033,6 +37085,7 @@ export namespace Prisma {
     RIF?: NullableStringFieldUpdateOperationsInput | string | null
     is_active?: BoolFieldUpdateOperationsInput | boolean
     subdomain?: NullableStringFieldUpdateOperationsInput | string | null
+    is_enrollment_open?: BoolFieldUpdateOperationsInput | boolean
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
     cdcee?: cdceeUpdateOneRequiredWithoutSchoolsNestedInput
@@ -37061,6 +37114,7 @@ export namespace Prisma {
     RIF?: NullableStringFieldUpdateOperationsInput | string | null
     is_active?: BoolFieldUpdateOperationsInput | boolean
     subdomain?: NullableStringFieldUpdateOperationsInput | string | null
+    is_enrollment_open?: BoolFieldUpdateOperationsInput | boolean
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
     cdceId?: IntFieldUpdateOperationsInput | number
@@ -37163,6 +37217,7 @@ export namespace Prisma {
     RIF?: string | null
     is_active?: boolean
     subdomain?: string | null
+    is_enrollment_open?: boolean
     created_at?: Date | string
     updated_at?: Date | string
     cdcee: cdceeCreateNestedOneWithoutSchoolsInput
@@ -37191,6 +37246,7 @@ export namespace Prisma {
     RIF?: string | null
     is_active?: boolean
     subdomain?: string | null
+    is_enrollment_open?: boolean
     created_at?: Date | string
     updated_at?: Date | string
     cdceId: number
@@ -37388,6 +37444,7 @@ export namespace Prisma {
     RIF?: NullableStringFieldUpdateOperationsInput | string | null
     is_active?: BoolFieldUpdateOperationsInput | boolean
     subdomain?: NullableStringFieldUpdateOperationsInput | string | null
+    is_enrollment_open?: BoolFieldUpdateOperationsInput | boolean
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
     cdcee?: cdceeUpdateOneRequiredWithoutSchoolsNestedInput
@@ -37416,6 +37473,7 @@ export namespace Prisma {
     RIF?: NullableStringFieldUpdateOperationsInput | string | null
     is_active?: BoolFieldUpdateOperationsInput | boolean
     subdomain?: NullableStringFieldUpdateOperationsInput | string | null
+    is_enrollment_open?: BoolFieldUpdateOperationsInput | boolean
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
     cdceId?: IntFieldUpdateOperationsInput | number
@@ -37716,6 +37774,7 @@ export namespace Prisma {
     RIF?: string | null
     is_active?: boolean
     subdomain?: string | null
+    is_enrollment_open?: boolean
     created_at?: Date | string
     updated_at?: Date | string
     cdcee: cdceeCreateNestedOneWithoutSchoolsInput
@@ -37744,6 +37803,7 @@ export namespace Prisma {
     RIF?: string | null
     is_active?: boolean
     subdomain?: string | null
+    is_enrollment_open?: boolean
     created_at?: Date | string
     updated_at?: Date | string
     cdceId: number
@@ -37946,6 +38006,7 @@ export namespace Prisma {
     RIF?: NullableStringFieldUpdateOperationsInput | string | null
     is_active?: BoolFieldUpdateOperationsInput | boolean
     subdomain?: NullableStringFieldUpdateOperationsInput | string | null
+    is_enrollment_open?: BoolFieldUpdateOperationsInput | boolean
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
     cdcee?: cdceeUpdateOneRequiredWithoutSchoolsNestedInput
@@ -37974,6 +38035,7 @@ export namespace Prisma {
     RIF?: NullableStringFieldUpdateOperationsInput | string | null
     is_active?: BoolFieldUpdateOperationsInput | boolean
     subdomain?: NullableStringFieldUpdateOperationsInput | string | null
+    is_enrollment_open?: BoolFieldUpdateOperationsInput | boolean
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
     cdceId?: IntFieldUpdateOperationsInput | number
@@ -38018,6 +38080,7 @@ export namespace Prisma {
     RIF?: string | null
     is_active?: boolean
     subdomain?: string | null
+    is_enrollment_open?: boolean
     created_at?: Date | string
     updated_at?: Date | string
     cdcee: cdceeCreateNestedOneWithoutSchoolsInput
@@ -38046,6 +38109,7 @@ export namespace Prisma {
     RIF?: string | null
     is_active?: boolean
     subdomain?: string | null
+    is_enrollment_open?: boolean
     created_at?: Date | string
     updated_at?: Date | string
     cdceId: number
@@ -38226,6 +38290,7 @@ export namespace Prisma {
     RIF?: NullableStringFieldUpdateOperationsInput | string | null
     is_active?: BoolFieldUpdateOperationsInput | boolean
     subdomain?: NullableStringFieldUpdateOperationsInput | string | null
+    is_enrollment_open?: BoolFieldUpdateOperationsInput | boolean
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
     cdcee?: cdceeUpdateOneRequiredWithoutSchoolsNestedInput
@@ -38254,6 +38319,7 @@ export namespace Prisma {
     RIF?: NullableStringFieldUpdateOperationsInput | string | null
     is_active?: BoolFieldUpdateOperationsInput | boolean
     subdomain?: NullableStringFieldUpdateOperationsInput | string | null
+    is_enrollment_open?: BoolFieldUpdateOperationsInput | boolean
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
     cdceId?: IntFieldUpdateOperationsInput | number
@@ -39446,6 +39512,7 @@ export namespace Prisma {
     RIF?: string | null
     is_active?: boolean
     subdomain?: string | null
+    is_enrollment_open?: boolean
     created_at?: Date | string
     updated_at?: Date | string
   }
@@ -39465,6 +39532,7 @@ export namespace Prisma {
     RIF?: NullableStringFieldUpdateOperationsInput | string | null
     is_active?: BoolFieldUpdateOperationsInput | boolean
     subdomain?: NullableStringFieldUpdateOperationsInput | string | null
+    is_enrollment_open?: BoolFieldUpdateOperationsInput | boolean
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
     students?: studentUpdateManyWithoutSchoolNestedInput
@@ -39493,6 +39561,7 @@ export namespace Prisma {
     RIF?: NullableStringFieldUpdateOperationsInput | string | null
     is_active?: BoolFieldUpdateOperationsInput | boolean
     subdomain?: NullableStringFieldUpdateOperationsInput | string | null
+    is_enrollment_open?: BoolFieldUpdateOperationsInput | boolean
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
     students?: studentUncheckedUpdateManyWithoutSchoolNestedInput
@@ -39521,6 +39590,7 @@ export namespace Prisma {
     RIF?: NullableStringFieldUpdateOperationsInput | string | null
     is_active?: BoolFieldUpdateOperationsInput | boolean
     subdomain?: NullableStringFieldUpdateOperationsInput | string | null
+    is_enrollment_open?: BoolFieldUpdateOperationsInput | boolean
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
   }

@@ -22,20 +22,21 @@ model cdcee {
 }
 
 model school {
-  SIG          String      @id
-  school_name  String
-  type         school_type
-  company_name String?
-  address      String
-  city         String
-  municipality String
-  state        String
-  phone        String
-  email        String
-  DEA_CODE     String
-  RIF          String?
-  is_active    Boolean     @default(true)
-  subdomain    String?     @unique
+  SIG                String      @id
+  school_name        String
+  type               school_type
+  company_name       String?
+  address            String
+  city               String
+  municipality       String
+  state              String
+  phone              String
+  email              String
+  DEA_CODE           String
+  RIF                String?
+  is_active          Boolean     @default(true)
+  subdomain          String?     @unique
+  is_enrollment_open Boolean     @default(false)
 
   created_at DateTime @default(now())
   updated_at DateTime @default(now()) @updatedAt

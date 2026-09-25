@@ -3,6 +3,7 @@ import { prisma } from "../lib/prisma.js";
 import bcrypt from "bcryptjs";
 import logger from "../utils/logger.js";
 import { tuitionNumber } from "../utils/tuitionNumber.js";
+import { Representative } from "./Representative.model.js";
 
 /**
  * Constructor de la clase Users
@@ -209,7 +210,7 @@ export class Users {
       const newUser = await prisma.$transaction(async (tx) => {
         const createUser = await tx.users.create({
           data: {
-            id_card: user.document,
+            id_card: user.id_card,
             name: user.name,
             last_name: user.last_name,
             email: user.email,
@@ -218,6 +219,8 @@ export class Users {
             is_active: true,
             is_first_login: true,
             pass: hashedPassword,
+            created_at: new Date(),
+            updated_at: new Date(),
           },
         });
 
@@ -226,13 +229,40 @@ export class Users {
         const SIG = user.SIG;
 
         switch (roleUser) {
-          case 2:
+          case 2: {
             const tuition_number = await tuitionNumber(user.SIG);
-            await tx.student.create({
+            let representativeId;
+
+            const representativeExisit = await prisma.representative.findFirst({
+              where: {
+                document: user.representative.document,
+              },
+            });
+
+            if (!representativeExisit) {
+              const representative = await tx.representative.create({
+                data: {
+                  document: user.representative.document,
+                  name: user.representative.name,
+                  last_name: user.representative.last_name,
+                  phone: user.representative.phone,
+                  relationship: user.representative.relationship,
+                  repEmail: user.representative.repEmail,
+                  created_at: new Date(),
+                  updated_at: new Date(),
+                },
+              });
+
+              representativeId = await representative.id;
+            } else {
+              representativeId = representativeExisit.id;
+            }
+
+            const newStudent = await tx.student.create({
               data: {
                 id_user: idUser,
                 SIG,
-                representative_id: user.representative_id,
+                representative_id: representativeId,
                 tuition_number: tuition_number,
                 allergies: user.allergies,
                 medical_condition: user.medical_condition,
@@ -245,8 +275,20 @@ export class Users {
                 birth_date: user.birth_date ? new Date(user.birth_date) : null,
                 condition: "nuevo_ingreso",
               },
+              select: {
+                tuition_number: true,
+                condition: true,
+                user: {
+                  select: {
+                    name: true,
+                    last_name: true,
+                  },
+                },
+              },
             });
-            break;
+
+            return newStudent; // Retorna el estudiante creado para usarlo en la respuesta
+          }
           case 3:
             await tx.teacher.create({
               data: {

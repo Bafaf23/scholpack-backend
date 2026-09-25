@@ -146,6 +146,7 @@ exports.Prisma.SchoolScalarFieldEnum = {
   RIF: 'RIF',
   is_active: 'is_active',
   subdomain: 'subdomain',
+  is_enrollment_open: 'is_enrollment_open',
   created_at: 'created_at',
   updated_at: 'updated_at',
   cdceId: 'cdceId'

@@ -189,23 +189,12 @@ export const createStudent = async (req, res) => {
 
     const studentDoc = `${documentType}${document}`.trim();
     const repDoc = `${repdniType}${repdni}`.trim();
-    const SIG = req.user?.SIG;
+    const SIG = req.body.SIG || req.user?.SIG;
 
-    const tuitionNumberN = await tuitionNumber(SIG);
+    const passgeneric = `${document.substring(0, 4)}@2026`;
 
-    if (!tuitionNumberN) {
-      logger.warn("Ocurrio un problema generando la matricula", {
-        tuitionNumberN,
-        SIG,
-      });
-      return res.status(400).json({
-        success: false,
-        code: "TUITION_GENERATION_FAILED",
-        message: "No se pudo generar el número de matrícula.",
-      });
-    }
-    const passgeneric = `${studentDoc.substring(0, 4)}@2026`;
-
+    console.log(studentDoc);
+    
     const birthDate = normalizeToDate(req.body.birthDate);
     if (!birthDate) {
       logger.error(
@@ -222,21 +211,19 @@ export const createStudent = async (req, res) => {
     }
 
     // insercion el la DB
-    const newStudent = await Students.createStudent({
-      student: {
-        tuition_number: tuitionNumberN,
-        allergies: req.body.allergies || null,
-        medical_condition: req.body.medicalCondition || null,
-        weight: req.body.weight || null,
-        height: req.body.height || null,
-        shirt_size: req.body.shirtSize || null,
-        pants_size: req.body.pantSize || null,
-        shoe_size: req.body.shoeSize || null,
-        condition: req.body.condition || "nuevo_ingreso",
-        SIG: SIG,
-        gender: gender?.trim(),
-        birth_date: birthDate,
-      },
+    const newStudent = await Users.create({
+      allergies: req.body.allergies || null,
+      medical_condition: req.body.medicalCondition || null,
+      weight: req.body.weight || null,
+      height: req.body.height || null,
+      shirt_size: req.body.shirtSize || null,
+      pants_size: req.body.pantSize || null,
+      shoe_size: req.body.shoeSize || null,
+      condition: req.body.condition || "nuevo_ingreso",
+      SIG: SIG,
+      gender: gender?.trim(),
+      birth_date: birthDate,
+
       representative: {
         document: repDoc,
         name: formatText(repName),
@@ -245,15 +232,14 @@ export const createStudent = async (req, res) => {
         relationship: relationship?.trim(),
         repEmail: req.body.repEmail.trim(),
       },
-      user: {
-        document: studentDoc,
-        name: formatText(name),
-        last_name: formatText(lastName),
-        email: email?.trim(),
-        phone: phone,
-        role_id: req.body.role_id || 2,
-        pass: passgeneric,
-      },
+
+      id_card: studentDoc,
+      name: formatText(name),
+      last_name: formatText(lastName),
+      email: email?.trim(),
+      phone: phone,
+      role_id: req.body.role_id || 2,
+      password: passgeneric,
     });
 
     if (!newStudent) {
@@ -279,12 +265,13 @@ export const createStudent = async (req, res) => {
     }
 
     logger.debug("¡Inscripción formalizada exitosamente!.", {
-      tuitionNumber,
+      tuitionNumber: newStudent.tuition_number,
     });
 
     return res.status(201).json({
       success: true,
-      message: `¡Inscripción formalizada exitosamente! Matrícula asignada: ${tuitionNumber}.`,
+      message: `¡Inscripción formalizada exitosamente! Matrícula asignada: ${newStudent.tuition_number}.`,
+      data: newStudent,
     });
   } catch (error) {
     console.error("❌ Error en createStudent:", error);

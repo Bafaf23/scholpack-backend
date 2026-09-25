@@ -357,7 +357,9 @@ export async function checkSchool(req, res) {
       success: exiteSubdomain == exiteSubdomain,
       school_name: exiteSubdomain.school_name,
       SIG: exiteSubdomain.SIG,
+      is_enrollment_open: exiteSubdomain.is_enrollment_open,
     });
+
   } catch (e) {
     console.error("❌ Error en getRoles:", e);
     return res.status(500).json({
