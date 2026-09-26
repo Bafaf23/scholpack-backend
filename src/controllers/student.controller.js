@@ -58,6 +58,8 @@ const safeTrim = (val) => (typeof val === "string" ? val.trim() : "");
  * @returns {Promise<import("express").Response>} Respuesta HTTP en formato JSON con la lista de escuelas.
  */
 export const getStudents = async (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 20;
   const SIG = req.user.SIG;
   const id_period = req.user.id_period;
 
@@ -92,12 +94,14 @@ export const getStudents = async (req, res) => {
       targetPeriodId = activePeriod.id;
     }
 
-    const students = await Students.getAllStudents({
+    const dataStudents = await Students.getAllStudents({
       SIG: SIG,
       id_period: Number(targetPeriodId),
+      limit,
+      page,
     });
 
-    if (!students || students.length === 0) {
+    if (!dataStudents || dataStudents.students.length === 0) {
       logger.warn("No se encontraron estudiantes matriculados", {
         SIG,
         periodId: targetPeriodId,
@@ -111,19 +115,28 @@ export const getStudents = async (req, res) => {
     }
 
     logger.debug("Estudiantes matriculados recuperados exitosamente", {
-      total: students.length,
-      SIG,
-      periodId: targetPeriodId,
+      total: dataStudents.students.length,
     });
 
-    if (process.env.NODE_ENV !== "production") {
-      console.dir(students, { depth: null, colors: true });
-    }
+    const totalPage = Math.ceil(dataStudents.count / limit);
+
+    const netxPage = page < totalPage ? page + 1 : null;
+    const prevPage = page > 1 ? page - 1 : null;
 
     return res.status(200).json({
       success: true,
       message: "Matrícula general de estudiantes recuperada con éxito.",
-      data: students,
+      data: dataStudents.students,
+      pagination: {
+        total: dataStudents.count,
+        page,
+        limit,
+        totalPage,
+        netxPage,
+        prevPage,
+        hasNextPage: netxPage !== null,
+        hasPrevPage: prevPage !== null,
+      },
     });
   } catch (error) {
     console.error("❌ Error en getStudents:", error);
@@ -194,7 +207,7 @@ export const createStudent = async (req, res) => {
     const passgeneric = `${document.substring(0, 4)}@2026`;
 
     console.log(studentDoc);
-    
+
     const birthDate = normalizeToDate(req.body.birthDate);
     if (!birthDate) {
       logger.error(

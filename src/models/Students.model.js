@@ -1,4 +1,5 @@
 import { prisma } from "../lib/prisma.js";
+import { tuitionNumber } from "../utils/tuitionNumber.js";
 
 /**
  * @class Student
@@ -73,68 +74,103 @@ export class Students {
    * @param {number} param.id_period - id del período académico
    * @returns {Promise<Array<object>>}
    */
-  static async getAllStudents({ SIG, id_period }) {
+  static async getAllStudents({ SIG, id_period, page, limit }) {
     try {
-      return await prisma.student.findMany({
-        where: {
-          SIG: SIG, // Trae a TODOS los estudiantes de la institución
-        },
-        include: {
-          user: {
-            select: {
-              id: true,
-              id_card: true,
-              name: true,
-              last_name: true,
-              email: true,
-              phone: true,
-              is_active: true,
+      const [studnets, count] = await Promise.all([
+        prisma.student.findMany({
+          where: {
+            SIG: SIG,
+          },
+          skip: (page - 1) * limit,
+          take: limit,
+          orderBy: {
+            user: {
+              last_name: "asc",
             },
           },
-          representative: {
-            select: {
-              id: true,
-              document: true,
-              name: true,
-              last_name: true,
-              relationship: true,
-              phone: true,
+          include: {
+            user: {
+              select: {
+                id: true,
+                id_card: true,
+                name: true,
+                last_name: true,
+                email: true,
+                phone: true,
+                is_active: true,
+              },
             },
-          },
-          school: {
-            select: {
-              SIG: true,
-              school_name: true,
+            representative: {
+              select: {
+                id: true,
+                document: true,
+                name: true,
+                last_name: true,
+                relationship: true,
+                phone: true,
+              },
             },
-          },
+            school: {
+              select: {
+                SIG: true,
+                school_name: true,
+              },
+            },
 
-          enrollments: {
-            where: id_period ? { id_period: Number(id_period) } : undefined,
-            select: {
-              id: true,
-              status: true,
-              id_period: true,
-              section: {
-                select: {
-                  id: true,
-                  name: true,
+            enrollments: {
+              where: id_period ? { id_period: Number(id_period) } : undefined,
+              select: {
+                id: true,
+                status: true,
+                id_period: true,
+                section: {
+                  select: {
+                    id: true,
+                    name: true,
+                  },
                 },
-              },
-              year: {
-                select: {
-                  id: true,
-                  name: true,
+                year: {
+                  select: {
+                    id: true,
+                    name: true,
+                  },
                 },
               },
             },
           },
-        },
-        orderBy: {
+        }),
+
+        prisma.student.count({
+          where: { SIG },
+        }),
+      ]);
+
+      const studentsPro = studnets.map((studnet) => {
+        return {
+          id: studnet.id,
+          tuition_number: studnet.tuition_number,
+          condition: studnet.condition,
           user: {
-            last_name: "asc",
+            id: studnet.id_user,
+            id_card: studnet.user.id_card,
+            name: studnet.user.name,
+            last_name: studnet.user.last_name,
           },
-        },
+          enrollment: studnet.enrollments.find((item) => ({
+            id: item.id,
+            status: item.status,
+            id_period: item.id_period,
+            section: {
+              name: item.section.name,
+            },
+            year: {
+              name: item.year.name,
+            },
+          })),
+        };
       });
+
+      return { students: studentsPro, count: count };
     } catch (error) {
       console.error("❌ Error al obtener los estudiantes:", error);
       throw error;
